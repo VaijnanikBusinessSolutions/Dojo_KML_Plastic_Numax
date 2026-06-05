@@ -57,3 +57,5 @@ test-results.xml
 # === Build / Misc ===
 build/
 *.log
+
+docs/

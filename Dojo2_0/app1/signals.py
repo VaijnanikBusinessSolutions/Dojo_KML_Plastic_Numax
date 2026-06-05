@@ -1418,77 +1418,194 @@ def handle_score_save(sender, instance, **kwargs):
 
 #---------numax easytimepro --------------------------------------
 import threading
+import requests
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from .models import SkillMatrix, BioUser, Machine, BiometricEnrollment, MasterTable, BiometricDevice, Level
 from .services.easytime_client import EasyTimeClient
 from django.db.models import Q
-# ---------------------------------------------------
-# HELPER TASK
-# ---------------------------------------------------
-def task_provision_user(bio_user, device, area_ids_list, specific_dept_id):
-    if not device or not device.serial_number: return
 
-    # Optional duplicate check (comment out to force updates)
-    if BiometricEnrollment.objects.filter(bio_user=bio_user, device=device).exists():
-        pass 
-
+# ---------------------------------------------------
+# CONSOLIDATED BACKGROUND TASK (Prevents Race Conditions & Transaction Blocks)
+# ---------------------------------------------------
+def sync_user_profile_and_push_to_devices(bio_user, target_devices, target_areas, dept_name):
+    """
+    Updates/Creates the employee profile in EasyTimePro exactly ONCE.
+    Then, triggers biometric sync pushes to target devices.
+    Also handles dynamic device area detection (Fixes Attendance/Gate access).
+    """
     client = EasyTimeClient()
     
-    if not isinstance(area_ids_list, list):
-        area_ids_list = [area_ids_list] if area_ids_list else []
-
-    result = client.provision_employee_to_device(
-        bio_user, 
-        device.serial_number,
-        area_ids=area_ids_list, 
-        dept_id=specific_dept_id
-    )
+    # 1. Resolve Department ID in EasyTimePro
+    et_dept_id = client.ensure_department(dept_name)
     
-    if result.get('status') == 'success':
-        BiometricEnrollment.objects.get_or_create(bio_user=bio_user, device=device)
-        print(f"✅ Synced {bio_user.first_name} to {device.name} (Areas: {area_ids_list}, Dept: {specific_dept_id})")
-    else:
-        print(f"❌ Sync Failed for {device.name}: {result.get('message')}")
+    # 2. Gather All Dojo Area IDs
+    dojo_target_areas = []
+    
+    # A. Enrollment Device Area (Dynamically detected to ensure Dojo Room access)
+    try:
+        enroll_dev_obj = BiometricDevice.objects.filter(is_enrollment_device=True).first()
+        if enroll_dev_obj:
+            headers = client.get_headers()
+            term_data = requests.get(f"{client.terminals_list_url}?sn={enroll_dev_obj.serial_number}", headers=headers).json()
+            if term_data.get('data') and len(term_data['data']) > 0:
+                raw_area = term_data['data'][0].get('area')
+                enroll_area_id = raw_area.get('id') if isinstance(raw_area, dict) else raw_area
+                if enroll_area_id:
+                    dojo_target_areas.append(enroll_area_id)
+            else:
+                dojo_target_areas.append(1)
+        else:
+            dojo_target_areas.append(1)
+    except Exception as e:
+        print(f"   ⚠️  Dynamic Area Lookup Failed: {e}")
+        dojo_target_areas.append(1)
+        
+    # B. Add Skill Matrix Area IDs
+    if target_areas:
+        for aid in target_areas:
+            if aid != 1 and aid not in dojo_target_areas:
+                dojo_target_areas.append(aid)
+                
+    # C. Add Target Device Area IDs (Fixes Attendance Devices / Gate mismatch)
+    for device in target_devices:
+        try:
+            headers = client.get_headers()
+            res = requests.get(f"{client.terminals_list_url}?sn={device.serial_number}", headers=headers)
+            if res.status_code == 200:
+                data = res.json().get('data', [])
+                if data:
+                    raw_area = data[0].get('area')
+                    dev_area_id = raw_area.get('id') if isinstance(raw_area, dict) else raw_area
+                    if dev_area_id and dev_area_id not in dojo_target_areas:
+                        dojo_target_areas.append(dev_area_id)
+        except Exception as e:
+            print(f"   ⚠️  Failed to fetch area for device {device.name}: {e}")
+
+    # 3. Smart Merge: Fetch existing areas and filter out unqualified Dojo areas (Fixes Downgrade Revocation)
+    existing_server_data = client.get_user_areas(bio_user.employeeid)
+    existing_ids = []
+    for item in existing_server_data:
+        if isinstance(item, dict):
+            if 'id' in item:
+                existing_ids.append(item['id'])
+        elif isinstance(item, int):
+            existing_ids.append(item)
+        elif isinstance(item, str) and item.isdigit():
+             existing_ids.append(int(item))
+
+    # Identify all Dojo-managed area IDs
+    dojo_managed_ids = client.get_dojo_managed_area_ids()
+    # Safely retain system default areas 1 and 2
+    if 1 in dojo_managed_ids: dojo_managed_ids.remove(1)
+    if 2 in dojo_managed_ids: dojo_managed_ids.remove(2)
+
+    final_area_list = []
+    # Retain non-Dojo areas and currently qualified Dojo areas
+    for a_id in existing_ids:
+        if (a_id not in dojo_managed_ids) or (a_id in dojo_target_areas):
+            final_area_list.append(a_id)
+
+    # Add new qualified Dojo areas
+    for new_area in dojo_target_areas:
+        if new_area not in final_area_list:
+            final_area_list.append(new_area)
+
+    # 4. Resolve Employee Demographics from MasterTable
+    from django.apps import apps
+    MasterTable_Model = apps.get_model('app1', 'MasterTable')
+    try:
+        mt = MasterTable_Model.objects.get(emp_id=bio_user.employeeid)
+        mobile = mt.phone if (mt.phone and len(mt.phone) >= 10) else None
+        gender = mt.sex
+    except:
+        mobile, gender = None, "M"
+        
+    pos_id = client.get_id_by_index('/personnel/api/positions/', index=0)
+    
+    payload = {
+        "emp_code": bio_user.employeeid, 
+        "first_name": bio_user.first_name, 
+        "last_name": bio_user.last_name,
+        "department": et_dept_id, 
+        "position": pos_id, 
+        "area": final_area_list,
+        "mobile": mobile,
+        "gender": gender,
+        "app_status": 1
+    }
+
+    # 5. Single Sync Profile Write
+    print(f"--> [EasyTime] Syncing profile {bio_user.employeeid} with Areas: {final_area_list}")
+    client.create_employee_raw(payload)
+    
+    # 6. Fetch Internal User ID
+    internal_uid = client.get_employee_internal_id(bio_user.employeeid)
+    if not internal_uid:
+        print(f"❌ User ID resolution failed for {bio_user.employeeid}")
+        return
+        
+    sync_url = f"{client.base_url}/iclock/api/terminals/sync_data_to_device/"
+    
+    # 7. Push Biometric Templates to Devices in Parallel
+    def push_sync(dev):
+        # Prevent push if already enrolled (fixes duplicate check)
+        if BiometricEnrollment.objects.filter(bio_user=bio_user, device=dev).exists():
+            print(f"   ℹ️ User {bio_user.employeeid} already enrolled on {dev.name}. Skipping sync push.")
+            return
+
+        sync_payload = {
+            "devices_sn": [dev.serial_number],
+            "user_id": [str(internal_uid)], 
+            "emp_code": True,
+            "finger_print": True, 
+            "face": True, 
+            "vl_face": True 
+        }
+        try:
+            res = requests.post(sync_url, json=sync_payload, headers=client.get_headers())
+            if res.status_code in [200, 201]:
+                BiometricEnrollment.objects.get_or_create(bio_user=bio_user, device=dev)
+                print(f"   ✅ Synced {bio_user.first_name} to {dev.name} (Areas: {final_area_list}, Dept: {et_dept_id})")
+            else:
+                print(f"   ❌ Sync Failed for {dev.name}: {res.text}")
+        except Exception as e:
+            print(f"   ❌ Exception syncing to {dev.name}: {e}")
+            
+    for device in target_devices:
+        if device.serial_number:
+            threading.Thread(target=push_sync, args=(device,)).start()
+
+    # 8. Clean up local enrollment logs for devices user no longer qualifies for
+    BiometricEnrollment.objects.filter(bio_user=bio_user).exclude(device__in=target_devices).delete()
 
 
 # ---------------------------------------------------
-# SIGNAL 1: SKILL MATRIX UPDATE
+# SIGNAL 1: SKILL MATRIX SAVE
 # ---------------------------------------------------
-
 @receiver(post_save, sender=SkillMatrix)
 def skill_matrix_biometric_trigger(sender, instance, **kwargs):
-    # 1. Validate Hierarchy
     if not instance.hierarchy or not instance.hierarchy.station:
         print(f"⚠️ SkillMatrix {instance.id} has no Station linked. Skipping.")
         return
 
-    # --- FIX 1: Strict Machine Filtering (The Guard) ---
-    # We access the Integer ID from the Level relation (instance.level.level_id)
-    # and match it against the Machine's integer 'level' field.
-    # This guarantees we ONLY get the Biometric Device for THIS specific level.
     try:
         target_level_id = instance.level.level_id 
     except AttributeError:
         print(f"⚠️ SkillMatrix {instance.id} has invalid Level relation.")
         return
 
-    # --- CHANGE 1: Filter Machines (Less Than or Equal) ---
-    # We want machines where machine.level <= user.level
-    # 'lte' stands for Less Than or Equal
+    # Find machines of same station with level <= operator's certified level
     eligible_machines = Machine.objects.filter(
-        process=instance.hierarchy.station, # Must match Station
-        # level=target_level_id,              # Must match Level ID (Integer)
-        level__lte=target_level_id, # <--- THE KEY CHANGE (was 'level=')
+        process=instance.hierarchy.station,
+        level__lte=target_level_id,
         biometric_device__isnull=False
     ).select_related('biometric_device')
 
     if not eligible_machines.exists():
-        # Debug log to confirm we skipped the wrong machines
         print(f"ℹ️ No biometric machines found for Station: {instance.hierarchy.station} @ Level ID: {target_level_id}")
         return
 
-    # 3. Get/Create Local BioUser
     try:
         emp_record = MasterTable.objects.get(emp_id=instance.emp_id)
         bio_user, _ = BioUser.objects.update_or_create(
@@ -1499,174 +1616,109 @@ def skill_matrix_biometric_trigger(sender, instance, **kwargs):
         print(f"⚠️ Employee {instance.emp_id} not found in MasterTable.")
         return
 
-    # 4. Prepare Data
     client = EasyTimeClient()
-
-    # A. Department
     dept_name = emp_record.department.department_name if emp_record.department else "General"
-    et_dept_id = client.ensure_department(dept_name)
 
-    # B. Area Logic: Accumulate from ALL Skills
+    # Compile qualified Dojo areas
     all_user_skills = SkillMatrix.objects.filter(emp_id=instance.emp_id)
-    target_areas = []
     
-    for skill in all_user_skills:
-        if skill.hierarchy and skill.hierarchy.station:
-            
-            ## --- FIX 2: Area Naming with UNIQUE ID ---
-            ## Format: "StationName (SID) - L2"
-            ## This solves the Duplicate Name conflict.
-            #########################
-            # try:
-            #     lvl_name = skill.level.level_name 
-            # except:
-            #     lvl_name = "Unk"
-            ############################3
-
-            # --- CHANGE 2: Generate Areas for ALL Lower Levels ---
-            # If user is Level 3, they need areas for Level 1, 2, AND 3.
-            # We fetch all levels that are <= the skill's level.
-            
-            user_skill_level_id = skill.level.level_id
-            
-            # Find 1, 2, 3... up to current level
-            qualifying_levels = Level.objects.filter(level_id__lte=user_skill_level_id)
-
-            st_name = skill.hierarchy.station.station_name
-            st_id = skill.hierarchy.station.station_id  # The Unique Database ID
-
-            ## s_name = f"{skill.hierarchy.station.station_name} - L{lvl_name}"
-            ## NEW NAME FORMAT: "Drilling (S12) - L2"
-
-            # s_name = f"{st_name}(S{st_id})-L{lvl_name}"
-
-            # a_id = client.ensure_area(s_name)
-            # if a_id not in target_areas:
-            #     target_areas.append(a_id)
-
-            # Loop through all qualifying levels and add their areas
-            for lvl in qualifying_levels:
-                # Name: "Drilling(S12)-L1", "Drilling(S12)-L2", etc.
-                s_name = f"{st_name}(S{st_id})-L{lvl.level_name}"
-                
-                a_id = client.ensure_area(s_name)
-                if a_id not in target_areas:
-                    target_areas.append(a_id)
-
-    # print(f"--> Skill Sync: {bio_user.first_name} | Level: {target_level_id} | Areas: {target_areas}")
-    print(f"--> Skill Sync: {bio_user.first_name} | Max Level: {target_level_id} | Areas: {target_areas}")
-
-    # 5. Sync to Machines (Safe Loop)
-    # 'eligible_machines' ONLY contains machines with the matching Level ID.
-    # Therefore, we ONLY send commands to the correct Serial Numbers.
-
-    # We send this Cumulative Area List to ALL machines (L1, L2, L3...)
-    # This ensures the L4 user can open the L1 machine using the L1 area key we just added.
+    # Build target devices list
+    target_devices = []
     for machine in eligible_machines:
-        # Double check device existence
-        if machine.biometric_device and machine.biometric_device.serial_number:
-            print(f"   ↳ Sending to Device SN: {machine.biometric_device.serial_number} (Level {machine.level})")
-            
-            threading.Thread(
-                target=task_provision_user, 
-                args=(bio_user, machine.biometric_device, target_areas, et_dept_id)
-            ).start()
+        if machine.biometric_device not in target_devices:
+            target_devices.append(machine.biometric_device)
 
+    # We also sync them to default attendance/enrollment devices
+    base_devices = BiometricDevice.objects.filter(
+        Q(is_attendance_device=True) | Q(is_enrollment_device=True)
+    )
+    for dev in base_devices:
+        if dev not in target_devices:
+            target_devices.append(dev)
 
+    # Run the entire sync in a single background thread to prevent blocks & races
+    def background_skill_sync():
+        compiled_areas = []
+        for skill in all_user_skills:
+            if skill.hierarchy and skill.hierarchy.station:
+                user_skill_level_id = skill.level.level_id
+                qualifying_levels = Level.objects.filter(level_id__lte=user_skill_level_id)
+                st_name = skill.hierarchy.station.station_name
+                st_id = skill.hierarchy.station.station_id
+                for lvl in qualifying_levels:
+                    s_name = f"{st_name}(S{st_id})-L{lvl.level_name}"
+                    a_id = client.ensure_area(s_name)
+                    if a_id not in compiled_areas:
+                        compiled_areas.append(a_id)
+        
+        sync_user_profile_and_push_to_devices(bio_user, target_devices, compiled_areas, dept_name)
 
-# @receiver(post_save, sender=SkillMatrix)
-# def skill_matrix_biometric_trigger(sender, instance, **kwargs):
-#     # 1. Validate Hierarchy
-#     if not instance.hierarchy or not instance.hierarchy.station:
-#         print(f"⚠️ SkillMatrix {instance.id} has no Station linked. Skipping.")
-#         return
-
-#     # --- FIX 1: Strict Machine Filtering (The Guard) ---
-#     # We access the Integer ID from the Level relation (instance.level.level_id)
-#     # and match it against the Machine's integer 'level' field.
-#     # This guarantees we ONLY get the Biometric Device for THIS specific level.
-#     try:
-#         target_level_id = instance.level.level_id 
-#     except AttributeError:
-#         print(f"⚠️ SkillMatrix {instance.id} has invalid Level relation.")
-#         return
-
-#     eligible_machines = Machine.objects.filter(
-#         process=instance.hierarchy.station, # Must match Station
-#         level=target_level_id,              # Must match Level ID (Integer)
-#         biometric_device__isnull=False
-#     ).select_related('biometric_device')
-
-#     if not eligible_machines.exists():
-#         # Debug log to confirm we skipped the wrong machines
-#         print(f"ℹ️ No biometric machines found for Station: {instance.hierarchy.station} @ Level ID: {target_level_id}")
-#         return
-
-#     # 3. Get/Create Local BioUser
-#     try:
-#         emp_record = MasterTable.objects.get(emp_id=instance.emp_id)
-#         bio_user, _ = BioUser.objects.update_or_create(
-#             employeeid=instance.emp_id,
-#             defaults={'first_name': emp_record.first_name, 'last_name': emp_record.last_name or ""}
-#         )
-#     except MasterTable.DoesNotExist:
-#         print(f"⚠️ Employee {instance.emp_id} not found in MasterTable.")
-#         return
-
-#     # 4. Prepare Data
-#     client = EasyTimeClient()
-
-#     # A. Department
-#     dept_name = emp_record.department.department_name if emp_record.department else "General"
-#     et_dept_id = client.ensure_department(dept_name)
-
-#     # B. Area Logic: Accumulate from ALL Skills
-#     all_user_skills = SkillMatrix.objects.filter(emp_id=instance.emp_id)
-#     target_areas = []
-    
-#     for skill in all_user_skills:
-#         if skill.hierarchy and skill.hierarchy.station:
-            
-#             # --- FIX 2: Unique Area Naming ---
-#             # Appends Level Name (e.g., "1", "2") to Area Name.
-#             # Result: "Drilling - L2" (Distinct from "Drilling - L3")
-#             # --- FIX 2: Area Naming with UNIQUE ID ---
-#             # Format: "StationName (SID) - L2"
-#             # This solves the Duplicate Name conflict.
-#             try:
-#                 lvl_name = skill.level.level_name 
-#             except:
-#                 lvl_name = "Unk"
-
-#             st_name = skill.hierarchy.station.station_name
-#             st_id = skill.hierarchy.station.station_id  # The Unique Database ID
-
-#             # s_name = f"{skill.hierarchy.station.station_name} - L{lvl_name}"
-#             # NEW NAME FORMAT: "Drilling (S12) - L2"
-#             s_name = f"{st_name}(S{st_id})-L{lvl_name}"
-
-#             a_id = client.ensure_area(s_name)
-#             if a_id not in target_areas:
-#                 target_areas.append(a_id)
-
-#     print(f"--> Skill Sync: {bio_user.first_name} | Level: {target_level_id} | Areas: {target_areas}")
-
-#     # 5. Sync to Machines (Safe Loop)
-#     # 'eligible_machines' ONLY contains machines with the matching Level ID.
-#     # Therefore, we ONLY send commands to the correct Serial Numbers.
-#     for machine in eligible_machines:
-#         # Double check device existence
-#         if machine.biometric_device and machine.biometric_device.serial_number:
-#             print(f"   ↳ Sending to Device SN: {machine.biometric_device.serial_number} (Level {machine.level})")
-            
-#             threading.Thread(
-#                 target=task_provision_user, 
-#                 args=(bio_user, machine.biometric_device, target_areas, et_dept_id)
-#             ).start()
+    threading.Thread(target=background_skill_sync).start()
 
 
 # ---------------------------------------------------
-# SIGNAL 2: MASTER TABLE UPDATE
+# SIGNAL 1B: SKILL MATRIX DELETE
+# ---------------------------------------------------
+@receiver(pre_delete, sender=SkillMatrix)
+def skill_matrix_delete_biometric_trigger(sender, instance, **kwargs):
+    """
+    When a SkillMatrix entry is deleted, recalculate operator's valid areas
+    and remove access to machines they no longer qualify for.
+    """
+    try:
+        emp_record = MasterTable.objects.get(emp_id=instance.emp_id)
+        bio_user = BioUser.objects.filter(employeeid=instance.emp_id).first()
+        if not bio_user:
+            return
+    except MasterTable.DoesNotExist:
+        return
+
+    client = EasyTimeClient()
+    dept_name = emp_record.department.department_name if emp_record.department else "General"
+
+    # Area Logic: Accumulate from remaining Skills (exclude current one)
+    remaining_skills = SkillMatrix.objects.filter(emp_id=instance.emp_id).exclude(id=instance.id)
+    
+    target_devices = []
+    # Fetch base devices
+    base_devices = BiometricDevice.objects.filter(
+        Q(is_attendance_device=True) | Q(is_enrollment_device=True)
+    )
+    for dev in base_devices:
+        target_devices.append(dev)
+
+    for skill in remaining_skills:
+        if skill.hierarchy and skill.hierarchy.station:
+            eligible_machines = Machine.objects.filter(
+                process=skill.hierarchy.station,
+                level__lte=skill.level.level_id,
+                biometric_device__isnull=False
+            ).select_related('biometric_device')
+            for m in eligible_machines:
+                if m.biometric_device not in target_devices:
+                    target_devices.append(m.biometric_device)
+
+    def background_delete_sync():
+        compiled_areas = []
+        for skill in remaining_skills:
+            if skill.hierarchy and skill.hierarchy.station:
+                user_skill_level_id = skill.level.level_id
+                qualifying_levels = Level.objects.filter(level_id__lte=user_skill_level_id)
+                st_name = skill.hierarchy.station.station_name
+                st_id = skill.hierarchy.station.station_id
+                for lvl in qualifying_levels:
+                    s_name = f"{st_name}(S{st_id})-L{lvl.level_name}"
+                    a_id = client.ensure_area(s_name)
+                    if a_id not in compiled_areas:
+                        compiled_areas.append(a_id)
+
+        sync_user_profile_and_push_to_devices(bio_user, target_devices, compiled_areas, dept_name)
+
+    threading.Thread(target=background_delete_sync).start()
+
+
+# ---------------------------------------------------
+# SIGNAL 2: MASTER TABLE SAVE
 # ---------------------------------------------------
 @receiver(post_save, sender=MasterTable)
 def sync_attendance_devices(sender, instance, created, **kwargs):
@@ -1676,31 +1728,23 @@ def sync_attendance_devices(sender, instance, created, **kwargs):
     )
 
     if created:
-        client = EasyTimeClient()
-        
-        # A. Department: From MasterTable
         mt_dept_name = instance.department.department_name if instance.department else "General"
-        et_dept_id = client.ensure_department(mt_dept_name)
-        
-        # B. Area: Default (Client logic defaults to Area 2/Factory)
-        et_area_ids = None 
-
-        # att_devices = BiometricDevice.objects.filter(is_attendance_device=True)
-        # C. Find Targets: Attendance Devices OR Enrollment Devices
-        # We want the new user on the Main Gate AND the Dojo Room Enrollment Device
         target_devices = BiometricDevice.objects.filter(
             Q(is_attendance_device=True) | Q(is_enrollment_device=True)
         )
 
         if target_devices.exists():
             print(f"--> Master Update: Syncing {bio_user.first_name} to {len(target_devices)} Base Devices (Attendance/Enrollment)")            
-            for device in target_devices:
-                threading.Thread(
-                    target=task_provision_user, 
-                    args=(bio_user, device, et_area_ids, et_dept_id)
-                ).start()
+            # Run in background to prevent race conditions and transaction block
+            threading.Thread(
+                target=sync_user_profile_and_push_to_devices, 
+                args=(bio_user, list(target_devices), None, mt_dept_name)
+            ).start()
 
-# --- SIGNAL 3: DELETE FROM MASTER TABLE ---
+
+# ---------------------------------------------------
+# SIGNAL 3: DELETE FROM MASTER TABLE
+# ---------------------------------------------------
 @receiver(pre_delete, sender=MasterTable)
 def delete_user_from_easytime_master(sender, instance, **kwargs):
     print(f"--> [MasterTable] Requesting delete for {instance.emp_id}...")
@@ -1712,27 +1756,16 @@ def delete_user_from_easytime_master(sender, instance, **kwargs):
     else:
         print(f"⚠️ Delete Warning: {result.get('message')}")
 
-# --- SIGNAL 4: DELETE FROM BIOUSER (Frontend Action) ---
-# @receiver(pre_delete, sender=BioUser)
-# def delete_user_from_easytime_frontend(sender, instance, **kwargs):
-#     if not MasterTable.objects.filter(emp_id=instance.employeeid).exists():
-#         print(f"--> [Frontend] Deleting {instance.employeeid} from EasyTimePro...")
-#         client = EasyTimeClient()
-#         result = client.delete_employee(instance.employeeid)
-        
-#         if result.get('status') == 'success':
-#             print(f"✅ API Success: User {instance.employeeid} deleted from EasyTimePro.")
-#         else:
-#             print(f"❌ API Failed: {result.get('message')}")
+
+# ---------------------------------------------------
+# SIGNAL 4: DELETE FROM BIOUSER
+# ---------------------------------------------------
 @receiver(pre_delete, sender=BioUser)
 def delete_user_from_easytime_frontend(sender, instance, **kwargs):
     """
     When deleted from Frontend (BioUser), ALWAYS remove from EasyTimePro.
-    We removed the MasterTable check so you can manually delete biometric access
-    even if the employee remains in the HR MasterTable.
     """
     print(f"--> [Frontend] Deleting {instance.employeeid} from EasyTimePro...")
-    
     client = EasyTimeClient()
     result = client.delete_employee(instance.employeeid)
     
@@ -1741,5 +1774,4 @@ def delete_user_from_easytime_frontend(sender, instance, **kwargs):
     else:
         print(f"❌ API Failed: {result.get('message')}")
 
-#---------numax easytimepro --------------------------------------
-
+#---------numax easytimepro End--------------------------------------
