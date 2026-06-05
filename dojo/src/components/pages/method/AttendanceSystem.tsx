@@ -6,7 +6,7 @@ import {
     ArrowUpDown, Calendar, AlertCircle, CheckCircle2, Timer, TrendingUp, TrendingDown,
     Users, UserCheck, UserX, AlarmClock, Coffee, ArrowUp, ArrowDown,
     FileDown, Eye, RefreshCw, SlidersHorizontal, LayoutGrid, List,
-    AlertTriangle, ShieldAlert
+    AlertTriangle, ShieldAlert, Plus, Settings, Shield
 } from "lucide-react";
 import SetAutoFetchTime from './SetAttendanceTaskTime';
 import Modal from './Modal';
@@ -114,6 +114,22 @@ const AttendanceSystem: React.FC = () => {
   const [activeTab, setActiveTab] = useState("daily-ops");
   const [loading, setLoading] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
+  const [isDeveloper, setIsDeveloper] = useState(false);
+
+  useEffect(() => {
+    try {
+      const authStr = localStorage.getItem('auth');
+      if (authStr) {
+        const authData = JSON.parse(authStr);
+        const user = authData.user;
+        if (user && user.role === 'Developer') {
+          setIsDeveloper(true);
+        }
+      }
+    } catch (e) {
+      console.error("Auth role check failed", e);
+    }
+  }, []);
   
   // Daily State
   const [dailyData, setDailyData] = useState<AttendanceRecord[]>([]);
@@ -1508,7 +1524,12 @@ const AttendanceSystem: React.FC = () => {
         <div className="min-h-[600px]">
             {activeTab === 'daily-ops' && renderDailyOps()}
             {activeTab === 'monthly-ledger' && renderMonthlyLedger()}
-            {activeTab === 'settings' && <SetAutoFetchTime />}
+            {activeTab === 'settings' && (
+                <div className="space-y-12">
+                    <SetAutoFetchTime />
+                    <AttendanceDevicesManager isDeveloper={isDeveloper} />
+                </div>
+            )}
         </div>
       </div>
 
@@ -1673,6 +1694,387 @@ const AttendanceSystem: React.FC = () => {
       >
           {renderDeleteConfirmation('monthly')}
       </Modal>
+    </div>
+  );
+};
+
+// --- ATTENDANCE DEVICES MANAGER COMPONENT ---
+
+interface Device {
+  id: number;
+  name: string;
+  ip_address: string | null;
+  port: number;
+  serial_number: string;
+  is_attendance_device: boolean;
+  is_enrollment_device: boolean;
+}
+
+const AttendanceDevicesManager: React.FC<{ isDeveloper: boolean }> = ({ isDeveloper }) => {
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [editingDevice, setEditingDevice] = useState<Device | null>(null);
+
+  // Add form fields
+  const [name, setName] = useState("");
+  const [ipAddress, setIpAddress] = useState("");
+  const [port, setPort] = useState(85);
+  const [serialNumber, setSerialNumber] = useState("");
+  const [isAttendanceDevice, setIsAttendanceDevice] = useState(true);
+  const [isEnrollmentDevice, setIsEnrollmentDevice] = useState(false);
+
+  const fetchDevices = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("http://127.0.0.1:8000/biometric-devices/");
+      // Filter out Man-Machine interlinkage devices (which have both flags false)
+      const filtered = res.data.filter(
+        (d: Device) => d.is_attendance_device || d.is_enrollment_device
+      );
+      setDevices(filtered);
+    } catch (err) {
+      console.error("Failed to fetch devices", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDevices();
+  }, []);
+
+  const handleAddDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !serialNumber) return alert("Name and Serial Number are required");
+    try {
+      await axios.post("http://127.0.0.1:8000/biometric-devices/", {
+        name,
+        ip_address: ipAddress || null,
+        port,
+        serial_number: serialNumber,
+        is_attendance_device: isAttendanceDevice,
+        is_enrollment_device: isEnrollmentDevice,
+      });
+      // Reset form
+      setName("");
+      setIpAddress("");
+      setPort(85);
+      setSerialNumber("");
+      setIsAttendanceDevice(false);
+      setIsEnrollmentDevice(false);
+      fetchDevices();
+      alert("Device registered successfully");
+    } catch (err: any) {
+      alert("Failed to register device: " + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleUpdateDevice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDevice) return;
+    try {
+      await axios.put(`http://127.0.0.1:8000/biometric-devices/${editingDevice.id}/`, {
+        name: editingDevice.name,
+        ip_address: editingDevice.ip_address || null,
+        port: editingDevice.port,
+        serial_number: editingDevice.serial_number,
+        is_attendance_device: editingDevice.is_attendance_device,
+        is_enrollment_device: editingDevice.is_enrollment_device,
+      });
+      setEditingDevice(null);
+      fetchDevices();
+      alert("Device updated successfully");
+    } catch (err: any) {
+      alert("Failed to update device: " + (err.response?.data?.error || err.message));
+    }
+  };
+
+  const handleDeleteDevice = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this device? This will unlink it from any interlinked machines.")) return;
+    try {
+      await axios.delete(`http://127.0.0.1:8000/biometric-devices/${id}/`);
+      fetchDevices();
+      alert("Device deleted successfully");
+    } catch (err: any) {
+      alert("Failed to delete device: " + (err.response?.data?.error || err.message));
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm mt-8">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-5 text-white flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2">
+            <Fingerprint className="w-5 h-5 text-blue-400" />
+            Biometric Device Settings
+          </h2>
+          <p className="text-slate-300 text-xs mt-1">
+            Register and manage attendance and machine interlinkage terminals
+          </p>
+        </div>
+        {!isDeveloper && (
+          <span className="flex items-center gap-1 bg-slate-600/50 px-3 py-1 rounded-full text-xs font-semibold">
+            <Shield className="w-3.5 h-3.5" /> Read-Only Mode
+          </span>
+        )}
+      </div>
+
+      <div className="p-6">
+        <div className="flex flex-col xl:flex-row gap-6">
+          {/* Left Side: Add/Edit Device Form (Only visible to Developers) */}
+          {isDeveloper && (
+            <div className="w-full xl:w-1/3 bg-slate-50 p-5 rounded-2xl border border-slate-100 shadow-inner">
+              {editingDevice ? (
+                // Edit Device Form
+                <form onSubmit={handleUpdateDevice} className="space-y-4">
+                  <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-slate-600 animate-spin" />
+                    Edit Biometric Device
+                  </h3>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 mb-1">Device Name</label>
+                    <input 
+                      type="text" 
+                      value={editingDevice.name}
+                      onChange={e => setEditingDevice({...editingDevice, name: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                      placeholder="e.g. Main Gate 1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 mb-1">Serial Number</label>
+                    <input 
+                      type="text" 
+                      value={editingDevice.serial_number}
+                      onChange={e => setEditingDevice({...editingDevice, serial_number: e.target.value})}
+                      className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                      placeholder="e.g. PDA5255100100"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-600 mb-1">IP Address</label>
+                      <input 
+                        type="text" 
+                        value={editingDevice.ip_address || ""}
+                        onChange={e => setEditingDevice({...editingDevice, ip_address: e.target.value})}
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                        placeholder="e.g. 192.168.1.100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-600 mb-1">Port</label>
+                      <input 
+                        type="number" 
+                        value={editingDevice.port}
+                        onChange={e => setEditingDevice({...editingDevice, port: parseInt(e.target.value) || 80})}
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Toggles */}
+                  <div className="space-y-2 pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={editingDevice.is_attendance_device}
+                        onChange={e => setEditingDevice({...editingDevice, is_attendance_device: e.target.checked})}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                      />
+                      <span className="text-xs font-semibold text-gray-700">Attendance Device (Gate)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={editingDevice.is_enrollment_device}
+                        onChange={e => setEditingDevice({...editingDevice, is_enrollment_device: e.target.checked})}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                      />
+                      <span className="text-xs font-semibold text-gray-700">Dojo Room Device</span>
+                    </label>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <button 
+                      type="button" 
+                      onClick={() => setEditingDevice(null)}
+                      className="flex-1 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg text-xs hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="flex-1 py-2 bg-slate-700 text-white font-semibold rounded-lg text-xs hover:bg-slate-800"
+                    >
+                      Update
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                // Add Device Form
+                <form onSubmit={handleAddDevice} className="space-y-4">
+                  <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-green-600" />
+                    Register New Device
+                  </h3>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 mb-1">Device Name</label>
+                    <input 
+                      type="text" 
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                      placeholder="e.g. Main Gate 1"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-600 mb-1">Serial Number</label>
+                    <input 
+                      type="text" 
+                      value={serialNumber}
+                      onChange={e => setSerialNumber(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                      placeholder="e.g. PDA5255100100"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-600 mb-1">IP Address</label>
+                      <input 
+                        type="text" 
+                        value={ipAddress}
+                        onChange={e => setIpAddress(e.target.value)}
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                        placeholder="e.g. 192.168.1.100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-600 mb-1">Port</label>
+                      <input 
+                        type="number" 
+                        value={port}
+                        onChange={e => setPort(parseInt(e.target.value) || 85)}
+                        className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Toggles */}
+                  <div className="space-y-2 pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={isAttendanceDevice}
+                        onChange={e => setIsAttendanceDevice(e.target.checked)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500 w-4 h-4"
+                      />
+                      <span className="text-xs font-semibold text-gray-700">Attendance Device (Gate)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="checkbox"
+                        checked={isEnrollmentDevice}
+                        onChange={e => setIsEnrollmentDevice(e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                      />
+                      <span className="text-xs font-semibold text-gray-700">Dojo Room Device</span>
+                    </label>
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="w-full py-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold rounded-lg text-xs hover:from-slate-800 hover:to-slate-900 shadow-md flex items-center justify-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Register Device
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
+          {/* Right Side: Device Table */}
+          <div className="flex-1 overflow-x-auto">
+            {loading && devices.length === 0 ? (
+              <div className="flex justify-center items-center py-16">
+                <Loader2 className="animate-spin text-slate-300 w-8 h-8" />
+              </div>
+            ) : devices.length === 0 ? (
+              <div className="text-center py-16 text-slate-300 bg-slate-50/50 rounded-2xl border border-dashed">
+                <Fingerprint className="w-14 h-14 mx-auto mb-3 opacity-30" />
+                <p className="font-semibold text-slate-500 text-sm">No Registered Biometric Terminals</p>
+                {isDeveloper && <p className="text-xs text-slate-400 mt-1">Fill the form to register the first device.</p>}
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Device Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Serial Number</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Connection</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Role & Status</th>
+                    {isDeveloper && <th className="px-4 py-3 text-right text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {devices.map(device => {
+                    let typePill = (
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700">
+                        Machine Linkage
+                      </span>
+                    );
+                    if (device.is_attendance_device) {
+                      typePill = (
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">
+                          Gate Attendance
+                        </span>
+                      );
+                    } else if (device.is_enrollment_device) {
+                      typePill = (
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">
+                          Dojo Enrollment
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <tr key={device.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-800">{device.name}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm font-mono text-gray-600">{device.serial_number}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                          {device.ip_address ? `${device.ip_address}:${device.port}` : "USB/Offline"}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">{typePill}</td>
+                        {isDeveloper && (
+                          <td className="px-4 py-3 whitespace-nowrap text-right text-xs font-medium space-x-2">
+                            <button 
+                              onClick={() => setEditingDevice(device)}
+                              className="text-blue-600 hover:text-blue-900 font-bold"
+                            >
+                              Edit
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteDevice(device.id)}
+                              className="text-red-600 hover:text-red-900 font-bold"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
