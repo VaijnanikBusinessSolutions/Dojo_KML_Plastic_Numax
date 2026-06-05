@@ -1,0 +1,12 @@
+@import 'atoms.css';
+@import 'molecules.css';
+
+/* Global navbar styles */
+.navbar {
+  @apply fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-2 flex justify-between items-center text-[#001740] z-50;
+}
+
+/* Brand colors */
+:root {
+  --brand-primary: #001740;
+}

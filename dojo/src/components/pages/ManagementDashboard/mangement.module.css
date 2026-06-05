@@ -1,0 +1,168 @@
+/* Main container */
+.dashboardContainer {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 15px;
+    box-sizing: border-box;
+}
+.titleContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    /* margin-bottom: 15px; */
+}
+.titleLeft {
+    flex: 1;
+    text-align: left;
+}
+/* Title styling */
+.title {
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #1e1e2f, #292941);
+    padding: 10px;
+    border-top-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    color: white;
+    width: 95%;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    margin-bottom: 10px;
+}
+  /* Plant dropdown styling */
+.plantDropdown {
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: white;
+    font-size: 14px;
+    min-width: 120px;
+    outline: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.plantDropdown:hover {
+    border-color: #888;
+}
+
+.plantDropdown:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Content container */
+.content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+  
+/* Header inside content */
+.header {
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 10px;
+    background: linear-gradient(135deg, #1e1e2f, #292941);
+    border-radius: 6px;
+    text-align: left;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    margin-bottom: 15px;
+    width: 30%;
+    color: white;
+}
+  
+/* Main content wrapper - split into left and right sections */
+.mainContentWrapper {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+    box-sizing: border-box;
+}
+  
+/* Left content area */
+.leftContent {
+    width: 30%; /* Using percentage width instead of flex */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 0; 
+    /* justify-content: center;
+    align-items: center; */
+}
+  
+/* Right content area */
+.rightContent {
+    width: 70%; /* Using percentage width instead of flex */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+  
+/* Card container in left section */
+.secondcardContainer {
+    width: 80%;
+    box-sizing: border-box;
+}
+
+.cardContainer {
+    width: 80%;
+    box-sizing: border-box;
+}
+  
+/* Component rows in right section */
+.componentsRow {
+    display: flex;
+    width: 100%;
+    gap: 15px;
+    box-sizing: border-box;
+}
+  
+/* Individual component items */
+.componentItem {
+    flex: 1;
+    min-width: 0;
+    height: 200px;
+    box-sizing: border-box;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    overflow: hidden;
+    padding: 2px;
+}
+  
+/* Ensure all children use border-box for consistent sizing */
+.dashboardContainer * {
+    box-sizing: border-box;
+}
+  /* Add this to your digital.module.css */
+.settingsButton {
+    background-color:#16163e;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 14px;
+  }
+  
+  .settingsButton:hover {
+    background-color: #1a252f;
+  }
+/* Media query for smaller screens to stack layout */
+@media (max-width: 768px) {
+    .mainContentWrapper {
+        flex-direction: column;
+    }
+    
+    .leftContent, .rightContent {
+        width: 100%;
+    }
+    
+    .header {
+        width: 100%;
+    }
+}

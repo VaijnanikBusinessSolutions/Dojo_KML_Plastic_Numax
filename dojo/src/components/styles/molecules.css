@@ -1,0 +1,55 @@
+/* CompanyLogo molecule styles */
+.company-logo {
+  @apply flex items-center gap-4;
+}
+
+.company-logo-text {
+  @apply text-2xl font-bold leading-tight text-[#001740];
+}
+
+/* AppTitle molecule styles */
+.app-title {
+  @apply absolute left-1/2 transform -translate-x-1/2 text-xl md:text-2xl lg:text-3xl font-bold cursor-pointer text-[#001740];
+}
+
+.app-title:hover {
+  @apply text-blue-800;
+}
+
+/* NavigationControls molecule styles */
+.nav-controls {
+  @apply flex items-center gap-4;
+}
+
+.nav-button {
+  @apply p-2 rounded-full hover:bg-gray-100 transition-colors duration-200;
+}
+
+/* UserDropdown molecule styles */
+.dropdown-container {
+  @apply relative;
+}
+
+.dropdown-menu {
+  @apply absolute right-0 mt-2 w-96 bg-gray-100 border border-gray-200 rounded-2xl shadow-2xl z-50 text-[#001740];
+}
+
+.dropdown-header {
+  @apply flex justify-end pt-3 pr-4;
+}
+
+.dropdown-email {
+  @apply px-6 text-sm text-center text-gray-500 -mt-2;
+}
+
+.dropdown-user-info {
+  @apply flex flex-col items-center px-6 pt-4 pb-3;
+}
+
+.dropdown-footer {
+  @apply mt-[80px] border-t border-gray-200 text-center text-sm text-gray-400 px-4 py-4 flex justify-center gap-2;
+}
+
+.dropdown-link {
+  @apply hover:underline cursor-pointer;
+}

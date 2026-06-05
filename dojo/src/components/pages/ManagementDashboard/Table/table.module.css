@@ -1,0 +1,40 @@
+.tableContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+    text-align: left;
+    background-color: #ffffff;
+}
+
+.thead {
+    background-color: #140b78;
+}
+
+.headerRow {
+    text-transform: uppercase;
+}
+
+.th {
+    padding: 12px;
+    color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.tbody {
+    background-color: #ffffff;
+}
+
+.row:hover {
+    background-color: #f5f5f5;
+}
+
+.td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}

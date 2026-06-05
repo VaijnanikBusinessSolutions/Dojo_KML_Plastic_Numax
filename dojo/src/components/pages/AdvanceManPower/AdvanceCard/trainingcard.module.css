@@ -1,0 +1,92 @@
+/* Card Container */
+.card {
+    width: 100%;
+    max-width: 100%; /* Changed from 400px to 100% to allow full width */
+    padding: 0;
+    background: transparent;
+    border-radius: 10px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* Horizontal layout */
+.horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Box style for horizontal layout */
+.horizontal .box {
+    flex: 1; /* This makes boxes grow to fill available space */
+    min-width: 150px; /* Minimum width for each box */
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-weight: lighter;
+    font-family: Arial, Helvetica, sans-serif;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Heading */
+.heading {
+    font-size: 18px;
+    font-weight: bold;
+    padding: 8px;
+    background-color: #b3b3b3;
+    color: #000000;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    border-radius: 10px 10px 0 0;
+}
+
+/* Default Box Grid (vertical layout) */
+.boxContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Box Style */
+.box {
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-weight: lighter;
+    font-family: Arial, Helvetica, sans-serif;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Number */
+.number {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Text */
+.text {
+    font-size: 14px;
+    margin-top: 5px;
+}

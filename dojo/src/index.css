@@ -1,0 +1,162 @@
+/* Import Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom CSS Variables */
+:root {
+  --brand-primary: #001740;
+  --brand-secondary: #0066CC;
+  --brand-accent: #4A90E2;
+}
+
+/* Base Layer */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply antialiased text-gray-900 bg-gray-50;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+  
+  * {
+    @apply border-gray-200;
+  }
+  
+  button {
+    @apply focus:outline-none;
+  }
+  
+  input, textarea {
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
+  }
+}
+
+/* Components Layer */
+@layer components {
+  /* Button Components */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply btn bg-brand-primary text-white hover:bg-blue-800 focus:ring-blue-500 shadow-sm hover:shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-white text-brand-primary border border-gray-200 hover:bg-gray-50 focus:ring-blue-500 shadow-sm hover:shadow-md;
+  }
+  
+  .btn-icon {
+    @apply p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50;
+  }
+  
+  .btn-ghost {
+    @apply text-gray-400 hover:text-gray-600 transition-colors duration-200;
+  }
+  
+  /* Card Components */
+  .card {
+    @apply bg-white rounded-xl shadow-soft p-6 hover:shadow-medium transition-shadow duration-300;
+  }
+  
+  .card-header {
+    @apply border-b border-gray-100 pb-4 mb-4;
+  }
+  
+  /* Navigation Components */
+  .navbar {
+    @apply fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-3 flex justify-between items-center text-brand-primary z-50;
+  }
+  
+  /* Avatar Components */
+  .avatar {
+    @apply rounded-full flex items-center justify-center font-semibold text-white shadow-md transition-shadow duration-200;
+  }
+  
+  .avatar-sm {
+    @apply w-8 h-8 text-sm;
+  }
+  
+  .avatar-md {
+    @apply w-10 h-10 text-base;
+  }
+  
+  .avatar-lg {
+    @apply w-12 h-12 text-lg;
+  }
+  
+  /* Dropdown Components */
+  .dropdown {
+    @apply absolute right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-hard z-50 animate-slide-down;
+  }
+  
+  .dropdown-item {
+    @apply px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-primary cursor-pointer transition-colors duration-150;
+  }
+  
+  /* Form Components */
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200;
+  }
+  
+  .label {
+    @apply block text-sm font-medium text-gray-700 mb-2;
+  }
+}
+
+/* Utilities Layer */
+@layer utilities {
+  .text-brand {
+    color: var(--brand-primary);
+  }
+  
+  .bg-brand {
+    background-color: var(--brand-primary);
+  }
+  
+  .border-brand {
+    border-color: var(--brand-primary);
+  }
+  
+  .shadow-brand {
+    box-shadow: 0 4px 15px rgba(0, 23, 64, 0.1);
+  }
+  
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  /* Custom scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E0 #F7FAFC;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #F7FAFC;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #CBD5E0;
+    border-radius: 3px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #A0AEC0;
+  }
+}

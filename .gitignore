@@ -1,0 +1,59 @@
+# === Python / Django ===
+env/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+*.env
+.env
+.env.*
+
+# Django specific
+*.egg-info/
+*.bak
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+
+# === React / Vite / Node (Frontend) ===
+dojo/node_modules/
+dojo/dist/
+dojo/.env
+dojo/.env.*
+dojo/.vite/
+dojo/.cache/
+dojo/.DS_Store
+dojo/npm-debug.log*
+dojo/yarn-debug.log*
+dojo/yarn-error.log*
+
+# === System / Editor Files ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# === Test / Coverage ===
+.pytest_cache/
+coverage/
+htmlcov/
+*.cover
+*.coverage
+coverage.xml
+nosetests.xml
+test-results.xml
+
+# === Build / Misc ===
+build/
+*.log
