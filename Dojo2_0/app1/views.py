@@ -18668,7 +18668,7 @@ def bifurcation_stats_view(request):
     
     # 1. Get IDs of employees present today
     present_emp_ids = BiometricAttendance.objects.filter(
-        created_at__date=today_date
+        attendance_date=today_date
     ).values_list('card_no', flat=True).distinct()
 
     # 2. Base QuerySet for SkillMatrix based on attendance
@@ -19149,7 +19149,7 @@ def current_manpower_card_view(request):
     
     # 1. Get IDs of employees present TODAY (Live Logic)
     present_emp_ids = BiometricAttendance.objects.filter(
-        created_at__date=today_date
+        attendance_date=today_date
     ).values_list('card_no', flat=True).distinct()
 
     # 2. Base QuerySet for SkillMatrix based on attendance
