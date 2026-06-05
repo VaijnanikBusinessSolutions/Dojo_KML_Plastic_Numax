@@ -192,7 +192,7 @@ class EasyTestHttpClient:
         return self.lib.VoteStop2(base_id)
 
 def main():
-    SERVER_BASE = "http://172.25.0.51:8000"  # or your LAN IP if different machine
+    SERVER_BASE = "http://127.0.0.1:8000"  # or your LAN IP if different machine
     # SERVER_BASE = "http://192.168.1.19:8000"  # or your LAN IP if different machine
     print("🚀 Starting EasyTest HTTP Client...")
     client = EasyTestHttpClient(SERVER_BASE)

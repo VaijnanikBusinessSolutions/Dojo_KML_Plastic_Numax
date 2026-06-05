@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, UserX, Edit2, Save, X, Calendar, Play, BookOpen } from 'lucide-react';
 
-const API_BASE = 'http://172.25.0.51:8000';
+const API_BASE = 'http://127.0.0.1:8000';
 
 interface TrainingCategory {
   id: number;

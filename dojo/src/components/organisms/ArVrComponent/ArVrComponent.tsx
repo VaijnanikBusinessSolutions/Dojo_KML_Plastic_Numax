@@ -29,7 +29,7 @@ export default function ArVrComponent() {
     const fetchArVrContents = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://172.25.0.51:8000/arvr-content/');
+        const response = await fetch('http://127.0.0.1:8000/arvr-content/');
         
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -70,7 +70,7 @@ export default function ArVrComponent() {
     }
   
     // Use axios instead of fetch for better FormData handling
-    const response = await axios.post('http://172.25.0.51:8000/arvr-content/', formData, {
+    const response = await axios.post('http://127.0.0.1:8000/arvr-content/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -116,11 +116,11 @@ const handleMaterialClick = (content: TrainingContent) => {
     if (content.arvr_file.startsWith('http')) {
       fileURL = content.arvr_file;
     } else if (content.arvr_file.startsWith('/media/')) {
-      fileURL = `http://172.25.0.51:8000${content.arvr_file}`;
+      fileURL = `http://127.0.0.1:8000${content.arvr_file}`;
     } else if (content.arvr_file.startsWith('media/')) {
-      fileURL = `http://172.25.0.51:8000/${content.arvr_file}`;
+      fileURL = `http://127.0.0.1:8000/${content.arvr_file}`;
     } else {
-      fileURL = `http://172.25.0.51:8000/media/${content.arvr_file}`;
+      fileURL = `http://127.0.0.1:8000/media/${content.arvr_file}`;
     }
 
     console.log('Opening file URL:', fileURL);
@@ -220,7 +220,7 @@ const handleMaterialClick = (content: TrainingContent) => {
   }
 
   try {
-    const response = await axios.delete(`http://172.25.0.51:8000/arvr-content/${contentId}/`);  // Updated endpoint
+    const response = await axios.delete(`http://127.0.0.1:8000/arvr-content/${contentId}/`);  // Updated endpoint
 
     if (response.status === 204) {
       setTrainingContents(trainingContents.filter(content => content.id !== contentId));

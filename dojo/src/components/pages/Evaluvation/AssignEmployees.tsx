@@ -133,7 +133,7 @@ useEffect(() => {
   }
   setIsLoading(true);
   fetchWithRetry(
-    `http://172.25.0.51:8000/evaluation-eligible-employees/?level_id=${CurrentLevel}&department_id=${departmentId}&station_id=${stationId}`
+    `http://127.0.0.1:8000/evaluation-eligible-employees/?level_id=${CurrentLevel}&department_id=${departmentId}&station_id=${stationId}`
   )
     .then(data => {
       if (data && Array.isArray(data.employees)) {
@@ -160,7 +160,7 @@ useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
 
-    // fetchWithRetry('http://172.25.0.51:8000/mastertable/')
+    // fetchWithRetry('http://127.0.0.1:8000/mastertable/')
     //   .then(data => {
     //     console.log('Employees fetched:', data);
     //     if (Array.isArray(data)) {
@@ -181,7 +181,7 @@ useEffect(() => {
     //     setMessage('Failed to load employees: ' + error.message);
     //   });
 
-    fetchWithRetry('http://172.25.0.51:8000/stations/')
+    fetchWithRetry('http://127.0.0.1:8000/stations/')
       .then(data => {
         console.log('Stations fetched:', data);
         if (Array.isArray(data)) {
@@ -209,7 +209,7 @@ useEffect(() => {
 
     console.log('Fetching question papers with query:', params.toString());
 
-    fetchWithRetry(`http://172.25.0.51:8000/questionpapers/?${params.toString()}`)
+    fetchWithRetry(`http://127.0.0.1:8000/questionpapers/?${params.toString()}`)
       .then(data => {
         console.log('Question papers raw data from backend:', data);
         if (Array.isArray(data)) {
@@ -344,7 +344,7 @@ useEffect(() => {
           })),
         };
 
-        const res = await fetch('http://172.25.0.51:8000/start-test/', {
+        const res = await fetch('http://127.0.0.1:8000/start-test/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

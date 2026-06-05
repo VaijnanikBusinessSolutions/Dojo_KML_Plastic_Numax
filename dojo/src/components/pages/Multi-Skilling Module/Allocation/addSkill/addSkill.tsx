@@ -51,7 +51,7 @@
 //   employee: Employee;
 // }
 
-// const API_BASE_URL = 'http://172.25.0.51:8000';
+// const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // const AddSkill = ({ employeeID, employee }: AddSkillProps) => {
 //   const [showForm, setShowForm] = useState(false);
@@ -578,7 +578,7 @@ interface AddSkillProps {
   onSkillAdded: () => void; // This is the crucial addition!
 }
 
-const API_BASE_URL = 'http://172.25.0.51:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // --- CHANGE 2: ACCEPT THE NEW PROP IN THE COMPONENT SIGNATURE ---
 const AddSkill = ({ employeeID, employee, onSkillAdded }: AddSkillProps) => {

@@ -5,7 +5,7 @@
 // import { Building, Users, Save, RotateCcw, AlertCircle, CheckCircle } from 'lucide-react';
 
 // // API base URL
-// const API_BASE_URL = 'http://172.25.0.51:8000';
+// const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // // Types
 // interface Department {
@@ -702,7 +702,7 @@ import {
 } from 'lucide-react';
 
 // API base URL
-const API_BASE_URL = 'http://172.25.0.51:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // --- Types ---
 

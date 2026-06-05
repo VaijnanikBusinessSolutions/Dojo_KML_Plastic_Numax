@@ -79,7 +79,7 @@
 //     training_name: '',
 //   });
 
-//   const API_BASE = import.meta.env.VITE_API_URL || 'http://172.25.0.51:8000';
+//   const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 //   // Fetch Batches
 //   useEffect(() => {
@@ -647,7 +647,7 @@ export default function AbsentEmployeesList() {
     training_name: '',
   });
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://172.25.0.51:8000';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
   // Fetch batches
   useEffect(() => {

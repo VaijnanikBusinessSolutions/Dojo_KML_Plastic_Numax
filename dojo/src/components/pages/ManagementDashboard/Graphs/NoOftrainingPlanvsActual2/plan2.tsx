@@ -14,7 +14,7 @@
 //   ctq_internal_rejection: number;
 // }
 
-// const API_BASE_URL = "http://172.25.0.51:8000";
+// const API_BASE_URL = "http://127.0.0.1:8000";
 
 // const PlanTwo: React.FC = () => {
 //   const [combinedDefectsData, setCombinedDefectsData] = useState<number[]>([]);
@@ -130,7 +130,7 @@ interface PlanTwoProps {
   stationId?: string;
 }
 
-const API_BASE_URL = "http://172.25.0.51:8000";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 const PlanTwo: React.FC<PlanTwoProps> = ({
   hqId, factoryId, departmentId, lineId, sublineId, stationId

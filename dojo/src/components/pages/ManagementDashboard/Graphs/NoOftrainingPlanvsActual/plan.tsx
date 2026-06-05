@@ -10,7 +10,7 @@
 //   stationId?: string;
 // }
 
-// const API_BASE_URL = "http://172.25.0.51:8000";
+// const API_BASE_URL = "http://127.0.0.1:8000";
 
 // const Plan: React.FC<PlanProps> = ({ 
 //   hqId, factoryId, departmentId, lineId, sublineId, stationId 
@@ -142,7 +142,7 @@ interface PlanProps {
   financialYear: string; // NEW
 }
 
-const API_BASE_URL = "http://172.25.0.51:8000";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 const Plan: React.FC<PlanProps> = ({
   hqId,

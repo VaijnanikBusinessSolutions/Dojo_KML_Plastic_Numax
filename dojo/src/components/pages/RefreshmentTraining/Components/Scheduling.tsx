@@ -57,7 +57,7 @@
 //   employees: BackendEmployee[];
 // }
 
-// const API_BASE = 'http://172.25.0.51:8000';
+// const API_BASE = 'http://127.0.0.1:8000';
 
 // // Validation helper for Trainer names
 // const validateTrainerName = (name: string): string | null => {
@@ -974,7 +974,7 @@ interface TrainingSession {
   employees: BackendEmployee[];
 }
 
-const API_BASE = 'http://172.25.0.51:8000';
+const API_BASE = 'http://127.0.0.1:8000';
 
 // Validation helper for Trainer names
 const validateTrainerName = (name: string): string | null => {

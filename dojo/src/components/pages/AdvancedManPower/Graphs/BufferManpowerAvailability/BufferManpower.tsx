@@ -4,7 +4,7 @@
 // } from 'recharts';
 
 // // --- CONFIGURATION ---
-// const API_BASE_URL = 'http://172.25.0.51:8000/';
+// const API_BASE_URL = 'http://127.0.0.1:8000/';
 
 // // --- PASTEL COLORS FOR BARS ---
 // const PASTEL_COLORS = ['#B5C7F5', '#F5C7E8', '#C7F5D4', '#F5E6C7', '#E8C7F5', '#C7E8F5', '#F5D4C7', '#D4F5C7'];
@@ -244,7 +244,7 @@ import {
 } from 'recharts';
 
 // --- CONFIGURATION ---
-const API_BASE_URL = 'http://172.25.0.51:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // --- PASTEL COLORS FOR BARS ---
 const PASTEL_COLORS = ['#B5C7F5', '#F5C7E8', '#C7F5D4', '#F5E6C7', '#E8C7F5', '#C7E8F5', '#F5D4C7', '#D4F5C7'];

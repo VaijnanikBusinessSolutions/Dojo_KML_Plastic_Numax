@@ -63,7 +63,7 @@
 //   useEffect(() => {
 //     const fetchDays = async () => {
 //       try {
-//         const res = await fetch('http://172.25.0.51:8000/days/');
+//         const res = await fetch('http://127.0.0.1:8000/days/');
 //         if (!res.ok) throw new Error('Failed to load days');
 //         const data: Day[] = await res.json();
 //         setDays(data.sort((a, b) => a.days_id - b.days_id));
@@ -87,8 +87,8 @@
 //       setError('');
 //       const endpoint =
 //         viewMode === 'active'
-//           ? 'http://172.25.0.51:8000/training-batches/active/'
-//           : 'http://172.25.0.51:8000/training-batches/past/';
+//           ? 'http://127.0.0.1:8000/training-batches/active/'
+//           : 'http://127.0.0.1:8000/training-batches/past/';
 //       try {
 //         const res = await fetch(endpoint);
 //         if (!res.ok) throw new Error(`Failed to fetch ${viewMode} batches`);
@@ -116,7 +116,7 @@
 //     const fetchBatchDetails = async () => {
 //       setLoading(true);
 //       try {
-//         const res = await fetch(`http://172.25.0.51:8000/attendance-detail/${selectedBatch}/`);
+//         const res = await fetch(`http://127.0.0.1:8000/attendance-detail/${selectedBatch}/`);
 //         if (!res.ok) throw new Error('Failed to load batch details');
 //         const data = await res.json();
 
@@ -240,7 +240,7 @@
 //     setSaving(true);
 //     setError('');
 //     try {
-//       const res = await fetch('http://172.25.0.51:8000/attendances/', {
+//       const res = await fetch('http://127.0.0.1:8000/attendances/', {
 //         method: 'POST',
 //         headers: { 'Content-Type': 'application/json' },
 //         body: JSON.stringify(changes),
@@ -637,7 +637,7 @@ export default function AttendanceMarking({ onSuccess }: AttendanceMarkingProps)
   useEffect(() => {
     const fetchDays = async () => {
       try {
-        const res = await fetch('http://172.25.0.51:8000/days/');
+        const res = await fetch('http://127.0.0.1:8000/days/');
         if (!res.ok) throw new Error('Failed to load days');
         const data: Day[] = await res.json();
         setDays(data.sort((a, b) => a.days_id - b.days_id));
@@ -653,8 +653,8 @@ export default function AttendanceMarking({ onSuccess }: AttendanceMarkingProps)
     const fetchBatches = async () => {
       setLoading(true);
       const endpoint = viewMode === 'active'
-        ? 'http://172.25.0.51:8000/training-batches/active/'
-        : 'http://172.25.0.51:8000/training-batches/past/';
+        ? 'http://127.0.0.1:8000/training-batches/active/'
+        : 'http://127.0.0.1:8000/training-batches/past/';
       try {
         const res = await fetch(endpoint);
         if (!res.ok) throw new Error(`Failed to fetch ${viewMode} batches`);
@@ -679,7 +679,7 @@ export default function AttendanceMarking({ onSuccess }: AttendanceMarkingProps)
     const fetchBatchDetails = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://172.25.0.51:8000/attendance-detail/${selectedBatch}/`);
+        const res = await fetch(`http://127.0.0.1:8000/attendance-detail/${selectedBatch}/`);
         if (!res.ok) throw new Error('Failed to load batch');
         const data = await res.json();
 
@@ -764,7 +764,7 @@ export default function AttendanceMarking({ onSuccess }: AttendanceMarkingProps)
 
     setSaving(true);
     try {
-      const res = await fetch('http://172.25.0.51:8000/attendances/', {
+      const res = await fetch('http://127.0.0.1:8000/attendances/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(changes),

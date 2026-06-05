@@ -13,7 +13,7 @@
 //   selectedYear?: number; 
 // }
 
-// const API_BASE_URL = "http://172.25.0.51:8000";
+// const API_BASE_URL = "http://127.0.0.1:8000";
 
 // // Labels ordered for Financial Year
 // const monthNames = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
@@ -176,7 +176,7 @@ interface AttritionProps {
   selectedYear?: number; 
 }
 
-const API_BASE_URL = "http://172.25.0.51:8000";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 // Financial Year Configuration: April to March
 const financialYearConfig = [

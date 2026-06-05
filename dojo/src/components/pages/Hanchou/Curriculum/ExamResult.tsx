@@ -47,7 +47,7 @@ const ExamResultsDashboard: React.FC = () => {
         const headers = token ? { 'Authorization': `Token ${token}` } : {};
         
         const response = await axios.get<ExamResult[]>(
-          'http://172.25.0.51:8000/hanchou/results/', // Your API endpoint
+          'http://127.0.0.1:8000/hanchou/results/', // Your API endpoint
           { headers }
         );
         setResults(response.data);

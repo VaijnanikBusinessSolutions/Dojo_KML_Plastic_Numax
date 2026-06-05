@@ -47,7 +47,7 @@ export const useEmployeeHistory = () => {
     //     } else {
     //         // --- REAL API LOGIC ---
     //         try {
-    //             const response = await fetch(`http://172.25.0.51:8000/mastertable/`, {
+    //             const response = await fetch(`http://127.0.0.1:8000/mastertable/`, {
     //                 headers: { Accept: "application/json" },
     //             });
     //             if (!response.ok) throw new Error("Error fetching employees");
@@ -107,7 +107,7 @@ export const useEmployeeHistory = () => {
         } else {
             // --- REAL API LOGIC ---
             try {
-                const response = await fetch(`http://172.25.0.51:8000/mastertable/`, {
+                const response = await fetch(`http://127.0.0.1:8000/mastertable/`, {
                     headers: { Accept: "application/json" },
                 });
                 if (!response.ok) throw new Error("Error fetching employees");
@@ -159,7 +159,7 @@ export const useEmployeeHistory = () => {
             // --- REAL API LOGIC ---
             try {
                 const response = await fetch(
-                    `http://172.25.0.51:8000/employee-card-details/?card_no=${employee.emp_id}`
+                    `http://127.0.0.1:8000/employee-card-details/?card_no=${employee.emp_id}`
                 );
                 if (!response.ok) throw new Error("Error fetching employee details");
                 
@@ -240,7 +240,7 @@ export const useEmployeeHistory = () => {
 // 		try {
 // 			setIsLoading(true);
 // 			setError("");
-// 			const response = await fetch(`http://172.25.0.51:8000/mastertable/`, {
+// 			const response = await fetch(`http://127.0.0.1:8000/mastertable/`, {
 // 				headers: { Accept: "application/json" },
 // 			});
 // 			if (!response.ok) throw new Error("Error fetching employees");
@@ -274,7 +274,7 @@ export const useEmployeeHistory = () => {
 
 // 		try {
 // 			const response = await fetch(
-// 				`http://172.25.0.51:8000/employee-card-details/?card_no=${employee.emp_id}`
+// 				`http://127.0.0.1:8000/employee-card-details/?card_no=${employee.emp_id}`
 // 			);
 // 			if (!response.ok) throw new Error("Error fetching employee details");
 			

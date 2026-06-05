@@ -135,7 +135,7 @@ const HanchouExam: React.FC<ExamProps> = ({
 
 
   useEffect(() => {
-    const API_BASE_URL = 'http://172.25.0.51:8000/'; // Ensure /api/ is in your URL if needed
+    const API_BASE_URL = 'http://127.0.0.1:8000/'; // Ensure /api/ is in your URL if needed
 
     const transformApiQuestions = (apiData: ApiQuestion[]): UiQuestion[] => {
       return apiData.map(q => ({
@@ -244,7 +244,7 @@ const HanchouExam: React.FC<ExamProps> = ({
     };
 
     try {
-        const API_RESULT_URL = 'http://172.25.0.51:8000/hanchou/results/';
+        const API_RESULT_URL = 'http://127.0.0.1:8000/hanchou/results/';
         const token = localStorage.getItem('authToken');
         const headers = token ? { 'Authorization': `Token ${token}` } : {};
 

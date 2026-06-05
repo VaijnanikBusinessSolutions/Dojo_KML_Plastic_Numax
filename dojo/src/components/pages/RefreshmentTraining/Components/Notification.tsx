@@ -24,7 +24,7 @@ const Notification: React.FC = () => {
 
   const fetchSessionsFromBackend = async () => {
     try {
-      const res = await fetch('http://172.25.0.51:8000/schedules/'); 
+      const res = await fetch('http://127.0.0.1:8000/schedules/'); 
       if (res.ok) {
         const data = await res.json();
         setTrainingSessions(data);

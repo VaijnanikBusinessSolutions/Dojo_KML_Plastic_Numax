@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { BioUser, BiometricDevice, AttendanceLog, Machine, MatrixData } from './types';
 
 // Adjust to your Django URL
-const API_BASE = 'http://172.25.0.51:8000/'; 
+const API_BASE = 'http://127.0.0.1:8000/'; 
 
 const api = axios.create({ baseURL: API_BASE });
 
@@ -33,7 +33,7 @@ export const getLogs = async (deviceId?: number) => {
   return (await api.get<{ logs: AttendanceLog[] }>('/api/attendance-logs/', { params })).data.logs;
 };
 
-export const getMachines = async () => (await axios.get<Machine[]>('http://172.25.0.51:8000/machines/')).data;
+export const getMachines = async () => (await axios.get<Machine[]>('http://127.0.0.1:8000/machines/')).data;
 
 
 

@@ -151,9 +151,9 @@
 //             try {
 //                 setLoading(true);
 //                 const [scoresResponse, handoversResponse, hierarchyResponse] = await Promise.all([
-//                     fetch("http://172.25.0.51:8000/scores/passed/level-1/"),
-//                     fetch("http://172.25.0.51:8000/handovers/"),
-//                     fetch("http://172.25.0.51:8000/hierarchy-simple/"),
+//                     fetch("http://127.0.0.1:8000/scores/passed/level-1/"),
+//                     fetch("http://127.0.0.1:8000/handovers/"),
+//                     fetch("http://127.0.0.1:8000/hierarchy-simple/"),
 //                 ]);
 
 //                 if (!scoresResponse.ok) throw new Error("Scores API failed");
@@ -182,7 +182,7 @@
 //         if (scores.length === 0) return;
 //         const fetchEmployeeDetails = async () => {
 //             const empIds = scores.map(score => score.employee_details.split("(").pop()?.replace(")", "")).filter(Boolean) as string[];
-//             const promises = empIds.map(id => fetch(`http://172.25.0.51:8000/mastertable-handover-details/${id}/`).then(res => res.ok ? res.json() : null));
+//             const promises = empIds.map(id => fetch(`http://127.0.0.1:8000/mastertable-handover-details/${id}/`).then(res => res.ok ? res.json() : null));
 //             try {
 //                 const results = await Promise.all(promises);
 //                 const detailsMap: { [key: string]: EmployeeMasterData } = {};
@@ -209,12 +209,12 @@
 //         setInitialFormData(null);
 
 //         try {
-//             const response = await fetch(`http://172.25.0.51:8000/mastertable-handover-details/${empId}/`);
+//             const response = await fetch(`http://127.0.0.1:8000/mastertable-handover-details/${empId}/`);
 //             if (!response.ok) throw new Error("Failed to fetch employee details for handover");
 //             const data: EmployeeMasterData = await response.json();
 //             setSelectedEmployeeDetails(data);
 
-//             const handResp = await fetch(`http://172.25.0.51:8000/handovers/${empId}/`);
+//             const handResp = await fetch(`http://127.0.0.1:8000/handovers/${empId}/`);
 //             const baseFormData = { name: `${data.first_name} ${data.last_name}`, currentDepartment: data.department?.department_name || "N/A", currentLine: data.current_line?.line_name || "N/A", currentStation: data.current_station?.station_name || "N/A", handoverDate: new Date().toISOString().split("T")[0], industrialExperience: "", kpaplExperience: "", contractorName: "", pAndAName: "", qaHodName: "", isTrainingCompleted: "" as const, gojoInchargeName: "" };
 
 //             if (handResp.ok) {
@@ -241,7 +241,7 @@
 //         if (!selectedEmployeeDetails) { alert("Error: Employee details not loaded."); return; }
 //         const payload = { emp_id: selectedEmployeeDetails.emp_id, industrial_experience: formData.industrialExperience, kpapl_experience: formData.kpaplExperience, required_department_at_handover: formData.currentDepartment, distributed_department_name: formData.distributedDepartment, line_id: formData.selectedLineId || null, station_id: formData.selectedStationId || null, handover_date: formData.handoverDate, contractor_name: formData.contractorName, p_and_a_name: formData.pAndAName, qa_hod_name: formData.qaHodName, is_training_completed: formData.isTrainingCompleted === 'yes', gojo_incharge_name: formData.gojoInchargeName };
 //         const method = isEditingMode ? "PUT" : "POST";
-//         const url = isEditingMode ? `http://172.25.0.51:8000/handovers/${selectedEmployeeDetails.emp_id}/` : "http://172.25.0.51:8000/handovers/";
+//         const url = isEditingMode ? `http://127.0.0.1:8000/handovers/${selectedEmployeeDetails.emp_id}/` : "http://127.0.0.1:8000/handovers/";
 //         try {
 //             const response = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
 //             if (!response.ok) { const errorData = await response.json(); const errorMessage = Object.values(errorData).flat().join(" ") || `Server error`; throw new Error(errorMessage); }
@@ -523,9 +523,9 @@
 //             try {
 //                 setLoading(true);
 //                 const [scoresResponse, handoversResponse, hierarchyResponse] = await Promise.all([
-//                     fetch("http://172.25.0.51:8000/scores/passed/level-1/"),
-//                     fetch("http://172.25.0.51:8000/handovers/"),
-//                     fetch("http://172.25.0.51:8000/hierarchy-simple/"),
+//                     fetch("http://127.0.0.1:8000/scores/passed/level-1/"),
+//                     fetch("http://127.0.0.1:8000/handovers/"),
+//                     fetch("http://127.0.0.1:8000/hierarchy-simple/"),
 //                 ]);
 
 //                 if (!scoresResponse.ok) throw new Error("Scores API failed");
@@ -560,7 +560,7 @@
 //         const fetchEmployeeDetails = async () => {
 //             const empIds = scores.map(score => score.employee_details.split("(").pop()?.replace(")", "")).filter(Boolean) as string[];
 //             const uniqueIds = Array.from(new Set(empIds));
-//             const promises = uniqueIds.map(id => fetch(`http://172.25.0.51:8000/mastertable-handover-details/${id}/`).then(res => res.ok ? res.json() : null));
+//             const promises = uniqueIds.map(id => fetch(`http://127.0.0.1:8000/mastertable-handover-details/${id}/`).then(res => res.ok ? res.json() : null));
 //             try {
 //                 const results = await Promise.all(promises);
 //                 const detailsMap: { [key: string]: EmployeeMasterData } = {};
@@ -611,12 +611,12 @@
 //         setInitialFormData(null);
 
 //         try {
-//             const response = await fetch(`http://172.25.0.51:8000/mastertable-handover-details/${empId}/`);
+//             const response = await fetch(`http://127.0.0.1:8000/mastertable-handover-details/${empId}/`);
 //             if (!response.ok) throw new Error("Failed to fetch employee details for handover");
 //             const data: EmployeeMasterData = await response.json();
 //             setSelectedEmployeeDetails(data);
 
-//             const handResp = await fetch(`http://172.25.0.51:8000/handovers/employee/${empId}/`);
+//             const handResp = await fetch(`http://127.0.0.1:8000/handovers/employee/${empId}/`);
             
 //             const baseFormData = { name: `${data.first_name} ${data.last_name}`, currentDepartment: data.department?.department_name || "N/A", currentLine: data.current_line?.line_name || "N/A", currentStation: data.current_station?.station_name || "N/A", handoverDate: new Date().toISOString().split("T")[0], industrialExperience: "", kpaplExperience: "", contractorName: "", pAndAName: "", qaHodName: "", isTrainingCompleted: "" as const, gojoInchargeName: "" };
 
@@ -681,8 +681,8 @@
 //         };
 
 //         const url = isEditingMode 
-//             ? `http://172.25.0.51:8000/handovers/employee/${selectedEmployeeDetails.emp_id}/` 
-//             : "http://172.25.0.51:8000/handovers/";
+//             ? `http://127.0.0.1:8000/handovers/employee/${selectedEmployeeDetails.emp_id}/` 
+//             : "http://127.0.0.1:8000/handovers/";
             
 //         const method = isEditingMode ? "PUT" : "POST";
         
@@ -1035,9 +1035,9 @@ const HandOverSheet: React.FC = () => {
             try {
                 setLoading(true);
                 const [scoresResponse, handoversResponse, hierarchyResponse] = await Promise.all([
-                    fetch("http://172.25.0.51:8000/scores/passed/level-1/"),
-                    fetch("http://172.25.0.51:8000/handovers/"),
-                    fetch("http://172.25.0.51:8000/hierarchy-simple/"),
+                    fetch("http://127.0.0.1:8000/scores/passed/level-1/"),
+                    fetch("http://127.0.0.1:8000/handovers/"),
+                    fetch("http://127.0.0.1:8000/hierarchy-simple/"),
                 ]);
 
                 if (!scoresResponse.ok) throw new Error("Scores API failed");
@@ -1072,7 +1072,7 @@ const HandOverSheet: React.FC = () => {
         const fetchEmployeeDetails = async () => {
             const empIds = scores.map(score => score.employee_details.split("(").pop()?.replace(")", "")).filter(Boolean) as string[];
             const uniqueIds = Array.from(new Set(empIds));
-            const promises = uniqueIds.map(id => fetch(`http://172.25.0.51:8000/mastertable-handover-details/${id}/`).then(res => res.ok ? res.json() : null));
+            const promises = uniqueIds.map(id => fetch(`http://127.0.0.1:8000/mastertable-handover-details/${id}/`).then(res => res.ok ? res.json() : null));
             try {
                 const results = await Promise.all(promises);
                 const detailsMap: { [key: string]: EmployeeMasterData } = {};
@@ -1123,12 +1123,12 @@ const HandOverSheet: React.FC = () => {
         setInitialFormData(null);
 
         try {
-            const response = await fetch(`http://172.25.0.51:8000/mastertable-handover-details/${empId}/`);
+            const response = await fetch(`http://127.0.0.1:8000/mastertable-handover-details/${empId}/`);
             if (!response.ok) throw new Error("Failed to fetch employee details for handover");
             const data: EmployeeMasterData = await response.json();
             setSelectedEmployeeDetails(data);
 
-            const handResp = await fetch(`http://172.25.0.51:8000/handovers/employee/${empId}/`);
+            const handResp = await fetch(`http://127.0.0.1:8000/handovers/employee/${empId}/`);
             
             const baseFormData = { name: `${data.first_name} ${data.last_name}`, currentDepartment: data.department?.department_name || "N/A", currentLine: data.current_line?.line_name || "N/A", currentStation: data.current_station?.station_name || "N/A", handoverDate: new Date().toISOString().split("T")[0], industrialExperience: "", kpaplExperience: "", contractorName: "", pAndAName: "", qaHodName: "", isTrainingCompleted: "" as const, gojoInchargeName: "" };
 
@@ -1197,8 +1197,8 @@ const HandOverSheet: React.FC = () => {
         };
 
         const url = isEditingMode 
-            ? `http://172.25.0.51:8000/handovers/employee/${selectedEmployeeDetails.emp_id}/` 
-            : "http://172.25.0.51:8000/handovers/";
+            ? `http://127.0.0.1:8000/handovers/employee/${selectedEmployeeDetails.emp_id}/` 
+            : "http://127.0.0.1:8000/handovers/";
             
         const method = isEditingMode ? "PUT" : "POST";
         

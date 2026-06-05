@@ -2,7 +2,7 @@
 // import { useLocation, useNavigate, useParams } from 'react-router-dom';
 // import { CheckCircle, XCircle, BookOpen, User, Loader2 } from 'lucide-react';
 
-// const API_BASE_URL = 'http://172.25.0.51:8000';
+// const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // interface AnswerSheetQuestion {
 //     id: number;
@@ -282,7 +282,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, XCircle, BookOpen, User, Loader2, Image as ImageIcon } from 'lucide-react';
 
-const API_BASE_URL = 'http://172.25.0.51:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // ⭐ 1. MODIFIED INTERFACES TO SUPPORT IMAGES
 interface OptionData {

@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import ConfirmModal from './modal';
 
-const API_BASE = 'http://172.25.0.51:8000';
+const API_BASE = 'http://127.0.0.1:8000';
 
 interface TrainingCategory {
   id: number;

@@ -107,7 +107,7 @@ export const TrainingOptionsPageNew: React.FC = () => {
     const [newContentFile, setNewContentFile] = useState<File | null>(null);
     const [newContentUrl, setNewContentUrl] = useState('');
 
-    const API_BASE_URL = 'http://172.25.0.51:8000';
+    const API_BASE_URL = 'http://127.0.0.1:8000';
 
     // Validation for required location state
     if (!locationState?.stationId || !locationState?.levelId) {

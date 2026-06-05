@@ -73,7 +73,7 @@
 //   useEffect(() => {
 //     const fetchHierarchyData = async () => {
 //       try {
-//         const response = await fetch("http://172.25.0.51:8000/hierarchy-simple/");
+//         const response = await fetch("http://127.0.0.1:8000/hierarchy-simple/");
 //         if (!response.ok) throw new Error("Failed to fetch hierarchy");
 //         const data: HierarchyNode[] = await response.json();
 //         setHierarchyData(data);
@@ -272,7 +272,7 @@
 //   //       if (selectedSubline) params.append("subline", selectedSubline);
 //   //       if (selectedStation) params.append("station", selectedStation);
 
-//   //       const url = `http://172.25.0.51:8000/chart/advance-card-stats/?${params.toString()}`;
+//   //       const url = `http://127.0.0.1:8000/chart/advance-card-stats/?${params.toString()}`;
         
 //   //       const response = await fetch(url);
 //   //       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -316,7 +316,7 @@
 
 //         // --- 1. USE THE SINGLE NEW URL ---
 //         // This endpoint returns { total_stations, operators_required, operators_available, ... }
-//         const url = `http://172.25.0.51:8000/chart/current-stats/?${params.toString()}`;
+//         const url = `http://127.0.0.1:8000/chart/current-stats/?${params.toString()}`;
 
 //         // --- 2. SINGLE FETCH ---
 //         const response = await fetch(url);
@@ -685,7 +685,7 @@ const Advance: React.FC = () => {
   useEffect(() => {
     const fetchHierarchyData = async () => {
       try {
-        const response = await fetch("http://172.25.0.51:8000/hierarchy-simple/");
+        const response = await fetch("http://127.0.0.1:8000/hierarchy-simple/");
         if (!response.ok) throw new Error("Failed to fetch hierarchy");
         const data: HierarchyNode[] = await response.json();
         setHierarchyData(data);
@@ -864,7 +864,7 @@ const Advance: React.FC = () => {
         if (selectedSubline) params.append("subline", selectedSubline.toString());
         if (selectedStation) params.append("station", selectedStation.toString());
 
-        const url = `http://172.25.0.51:8000/chart/current-stats/?${params.toString()}`;
+        const url = `http://127.0.0.1:8000/chart/current-stats/?${params.toString()}`;
         const response = await fetch(url);
 
         if (!response.ok) throw new Error("Failed to fetch current stats");

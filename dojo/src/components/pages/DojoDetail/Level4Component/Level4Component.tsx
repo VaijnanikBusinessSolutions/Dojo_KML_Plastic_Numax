@@ -31,7 +31,7 @@ const Level4Component: React.FC = () => {
 
   useEffect(() => {
 
-    fetch("http://172.25.0.51:8000/levelwise-training-contents/")
+    fetch("http://127.0.0.1:8000/levelwise-training-contents/")
       .then(res => res.json())
       .then(data => {
         const level4Contents = data
@@ -46,7 +46,7 @@ const Level4Component: React.FC = () => {
     });
 
     // CORRECTED: Use the correct endpoint for question papers
-    fetch("http://172.25.0.51:8000/questionpapers/")
+    fetch("http://127.0.0.1:8000/questionpapers/")
       .then(res => res.json())
       .then((data) => {
         // CORRECTED: Map the API response fields to our component's interface
@@ -68,7 +68,7 @@ const Level4Component: React.FC = () => {
       return;
     }
     // CORRECTED: Use the correct endpoint and query parameter for questions
-    fetch(`http://172.25.0.51:8000/template-questions/?question_paper=${selectedPaperId}`)
+    fetch(`http://127.0.0.1:8000/template-questions/?question_paper=${selectedPaperId}`)
       .then(res => res.json())
       .then((data) => {
         // CORRECTED: Transform the question data to match the component's 'Question' interface
@@ -98,7 +98,7 @@ const Level4Component: React.FC = () => {
   const handleMaterialClick = (content: TrainingContent) => {
     let url = content.url_link || content.training_file || "";
     if (url && !url.startsWith("http")) {
-      url = `http://172.25.0.51:8000${url}`;
+      url = `http://127.0.0.1:8000${url}`;
     }
     if (url) window.open(url, "_blank", "noopener,noreferrer");
   };

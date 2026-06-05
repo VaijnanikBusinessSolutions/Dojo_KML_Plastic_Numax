@@ -27,7 +27,7 @@ const QuestionForm: React.FC = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
-    fetch('http://172.25.0.51:8000/api/question-papers/')
+    fetch('http://127.0.0.1:8000/api/question-papers/')
       .then(res => res.json())
       .then(data => {
         setPapers(data);
@@ -43,7 +43,7 @@ const QuestionForm: React.FC = () => {
 
   useEffect(() => {
     if (selectedPaperId) {
-      fetch(`http://172.25.0.51:8000/api/questions/?paper_id=${selectedPaperId}`)
+      fetch(`http://127.0.0.1:8000/api/questions/?paper_id=${selectedPaperId}`)
         .then(res => res.json())
         .then(setQuestions);
     }
@@ -71,7 +71,7 @@ const QuestionForm: React.FC = () => {
       return;
     }
 
-    const res = await fetch('http://172.25.0.51:8000/api/questions/', {
+    const res = await fetch('http://127.0.0.1:8000/api/questions/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -91,7 +91,7 @@ const QuestionForm: React.FC = () => {
       setQuestionText('');
       setOptions(['', '', '', '']);
       setCorrectIndex(null);
-      const updated = await fetch(`http://172.25.0.51:8000/api/questions/?paper_id=${selectedPaperId}`);
+      const updated = await fetch(`http://127.0.0.1:8000/api/questions/?paper_id=${selectedPaperId}`);
       setQuestions(await updated.json());
     } else {
       const err = await res.json();
@@ -104,7 +104,7 @@ const QuestionForm: React.FC = () => {
     const confirm = window.confirm('Are you sure you want to delete this question?');
     if (!confirm) return;
 
-    const res = await fetch(`http://172.25.0.51:8000/api/questions/${id}/`, {
+    const res = await fetch(`http://127.0.0.1:8000/api/questions/${id}/`, {
       method: 'DELETE',
     });
     if (res.ok) {

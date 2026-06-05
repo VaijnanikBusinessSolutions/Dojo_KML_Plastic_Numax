@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Table, CheckCircle, XCircle, Users, Target, BookOpen, Loader2 } from 'lucide-react';
 
-const API_BASE_URL = 'http://172.25.0.51:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 interface QuestionHeader {
     id: number;

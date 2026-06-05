@@ -53,7 +53,7 @@
 //   const videoRef = useRef<HTMLVideoElement>(null);
 //   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-//   const API_BASE = import.meta.env.VITE_API_URL || 'http://172.25.0.51:8000';
+//   const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 //   const isAttendanceAllowed = (session: RescheduledSession): { allowed: boolean; reason?: string } => {
 //     if (session.attendance_marked) return { allowed: false, reason: 'Already marked' };
@@ -656,7 +656,7 @@ export default function RescheduledSessionList() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://172.25.0.51:8000';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
   const isAttendanceAllowed = (session: RescheduledSession): { allowed: boolean; reason?: string } => {
     if (session.attendance_marked) return { allowed: false, reason: 'Already marked' };

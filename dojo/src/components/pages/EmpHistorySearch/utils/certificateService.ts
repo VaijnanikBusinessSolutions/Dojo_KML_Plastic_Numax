@@ -25,7 +25,7 @@ const handleFetch = async (url: string, options?: RequestInit) => {
 };
 
 export const downloadFullReport = async (employee: MasterEmployee): Promise<void> => {
-    const response = await handleFetch("http://172.25.0.51:8000/employee-report/", {
+    const response = await handleFetch("http://127.0.0.1:8000/employee-report/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ card_no: employee.emp_id }),
@@ -35,7 +35,7 @@ export const downloadFullReport = async (employee: MasterEmployee): Promise<void
 };
 
 export const downloadSkillCertificate = async (skill: OperatorSkill): Promise<void> => {
-    const response = await handleFetch(`http://172.25.0.51:8000/operator-skills/${skill.id}/download-certificate/`);
+    const response = await handleFetch(`http://127.0.0.1:8000/operator-skills/${skill.id}/download-certificate/`);
     const blob = await response.blob();
     const skillName = skill.station_name.replace(/\W+/g, "_");
     const operatorName = skill.employee_name.replace(/\W+/g, "_");
@@ -43,7 +43,7 @@ export const downloadSkillCertificate = async (skill: OperatorSkill): Promise<vo
 };
 
 export const downloadScoreCertificate = async (score: Score): Promise<void> => {
-    const response = await handleFetch(`http://172.25.0.51:8000/scores/${score.id}/download-certificate/`);
+    const response = await handleFetch(`http://127.0.0.1:8000/scores/${score.id}/download-certificate/`);
     const blob = await response.blob();
     const contentDisposition = response.headers.get('Content-Disposition');
     let filename = 'Assessment_Certificate.pdf';
@@ -55,7 +55,7 @@ export const downloadScoreCertificate = async (score: Score): Promise<void> => {
 };
 
 export const downloadHanchouCertificate = async (result: HanchouResult, employeeName: string): Promise<void> => {
-    const response = await handleFetch(`http://172.25.0.51:8000/hanchou-results/${result.id}/download-certificate/`);
+    const response = await handleFetch(`http://127.0.0.1:8000/hanchou-results/${result.id}/download-certificate/`);
     const blob = await response.blob();
     const cleanEmployeeName = employeeName.replace(/\W+/g, "_");
     const examName = result.exam_name.replace(/\W+/g, "_");
@@ -63,7 +63,7 @@ export const downloadHanchouCertificate = async (result: HanchouResult, employee
 };
 
 export const downloadShokuchouCertificate = async (result: ShokuchouResult, employeeName: string): Promise<void> => {
-    const response = await handleFetch(`http://172.25.0.51:8000/shokuchou-results/${result.id}/download-certificate/`);
+    const response = await handleFetch(`http://127.0.0.1:8000/shokuchou-results/${result.id}/download-certificate/`);
     const blob = await response.blob();
     const cleanEmployeeName = employeeName.replace(/\W+/g, "_");
     const examName = result.exam_name.replace(/\W+/g, "_");

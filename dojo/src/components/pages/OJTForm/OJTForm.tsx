@@ -94,7 +94,7 @@ const OJTForm: React.FC = () => {
   const fetchMaxAttempts = async (evaluationType: string) => {
     try {
       const response = await fetch(
-        `http://172.25.0.51:8000/evaluation-type/by-params/?evaluation_type=${evaluationType}`
+        `http://127.0.0.1:8000/evaluation-type/by-params/?evaluation_type=${evaluationType}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -114,7 +114,7 @@ const OJTForm: React.FC = () => {
   ) => {
     try {
       const response = await fetch(
-        `http://172.25.0.51:8000/retraining-sessions/current-attempt/?employee_id=${empId}&level_id=${levelId}&department_id=${deptId}&station_id=${stationId}`
+        `http://127.0.0.1:8000/retraining-sessions/current-attempt/?employee_id=${empId}&level_id=${levelId}&department_id=${deptId}&station_id=${stationId}`
       );
       if (!response.ok) return 1;
       const data = await response.json();

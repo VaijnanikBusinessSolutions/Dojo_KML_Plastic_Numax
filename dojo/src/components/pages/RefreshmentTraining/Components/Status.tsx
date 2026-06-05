@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Filter, TrendingUp, BookOpen } from 'lucide-react';
 
 // const API_BASE = API_ENDPOINTS.BASE_URL;
-const API_BASE = 'http://172.25.0.51:8000';
+const API_BASE = 'http://127.0.0.1:8000';
 
 interface Employee {
   id: string;            // emp_id (PK)

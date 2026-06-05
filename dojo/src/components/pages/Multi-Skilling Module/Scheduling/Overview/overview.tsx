@@ -23,7 +23,7 @@ const Overview = () => {
       setError('');
       try {
         // Fetch from the new MultiSkilling backend
-        const multiSkillingRes = await fetch('http://172.25.0.51:8000/multiskilling/');
+        const multiSkillingRes = await fetch('http://127.0.0.1:8000/multiskilling/');
 
         if (!multiSkillingRes.ok) {
           throw new Error('Failed to fetch multiskilling data');

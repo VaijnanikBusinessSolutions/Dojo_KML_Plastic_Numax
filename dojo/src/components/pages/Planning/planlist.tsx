@@ -71,8 +71,8 @@
 //     const fetchData = async () => {
 //       try {
 //         // NOTE: If your React dev server is on a different port than your Django API,
-//         // you may need the full URL, e.g., 'http://172.25.0.51:8000/api/production-data/'
-//         const response = await fetch('http://172.25.0.51:8000/production-data/');
+//         // you may need the full URL, e.g., 'http://127.0.0.1:8000/api/production-data/'
+//         const response = await fetch('http://127.0.0.1:8000/production-data/');
         
 //         if (!response.ok) {
 //           throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
@@ -484,7 +484,7 @@ const ProductionDashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://172.25.0.51:8000/production-data/');
+        const response = await fetch('http://127.0.0.1:8000/production-data/');
         if (!response.ok) {
           throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
         }

@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'http://172.25.0.51:8000/'; 
+const API_BASE_URL = 'http://127.0.0.1:8000/'; 
 
 // --- Helper for handling API responses ---
 const handleResponse = async (response: Response) => {

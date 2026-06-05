@@ -69,7 +69,7 @@ const EmployeeSearch = () => {
       try {
         setIsLoading(true);
         const response = await fetch(
-          `http://172.25.0.51:8000/employee-skill-search/?query=${encodeURIComponent(term)}`
+          `http://127.0.0.1:8000/employee-skill-search/?query=${encodeURIComponent(term)}`
         );
 
         if (response.ok) {
@@ -108,8 +108,8 @@ const EmployeeSearch = () => {
     try {
         // Use Promise.all to fetch both data points concurrently
         const [assignedSkillsRes, completedSkillsRes] = await Promise.all([
-            fetch(`http://172.25.0.51:8000/multiskilling/?emp_id=${employeeId}`),
-            fetch(`http://172.25.0.51:8000/employee-skill-search/?query=${encodeURIComponent(employeeId)}`)
+            fetch(`http://127.0.0.1:8000/multiskilling/?emp_id=${employeeId}`),
+            fetch(`http://127.0.0.1:8000/employee-skill-search/?query=${encodeURIComponent(employeeId)}`)
         ]);
 
         // Handle Assigned Skills
@@ -148,7 +148,7 @@ const EmployeeSearch = () => {
 
       try {
         const response = await fetch(
-          `http://172.25.0.51:8000/multiskilling/?emp_id=${employeeId}`
+          `http://127.0.0.1:8000/multiskilling/?emp_id=${employeeId}`
         );
 
         if (response.ok) {

@@ -32,12 +32,12 @@ const Level1Component: React.FC = () => {
 
   useEffect(() => {
     // Fetch training contents (assumed to be correct)
-    fetch("http://172.25.0.51:8000/training-contents/")
+    fetch("http://127.0.0.1:8000/training-contents/")
       .then(res => res.json())
       .then(setTrainingContents);
 
     // Fetch question papers from the new endpoint
-    fetch("http://172.25.0.51:8000/questionpapers/")
+    fetch("http://127.0.0.1:8000/questionpapers/")
       .then(res => res.json())
       .then((data) => {
         // CORRECTED: Map the API response to match our component's interface
@@ -62,7 +62,7 @@ const Level1Component: React.FC = () => {
 
     if (selectedPaperId) {
       // CORRECTED: Use the correct endpoint and query parameter for filtering questions
-      fetch(`http://172.25.0.51:8000/template-questions/?question_paper=${selectedPaperId}`)
+      fetch(`http://127.0.0.1:8000/template-questions/?question_paper=${selectedPaperId}`)
         .then(res => res.json())
         .then((data) => {
           // CORRECTED: Transform the incoming question data to match the 'Question' interface
@@ -93,7 +93,7 @@ const Level1Component: React.FC = () => {
   const handleMaterialClick = (content: TrainingContent) => {
     let url = content.url_link || content.training_file || "";
     if (url && !url.startsWith("http")) {
-      url = url.startsWith("/media/") ? `http://172.25.0.51:8000${url}` : `http://172.25.0.51:8000/media/${url}`;
+      url = url.startsWith("/media/") ? `http://127.0.0.1:8000${url}` : `http://127.0.0.1:8000/media/${url}`;
     }
     if (url) window.open(url, "_blank", "noopener,noreferrer");
   };

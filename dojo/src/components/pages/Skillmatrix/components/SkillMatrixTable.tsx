@@ -128,7 +128,7 @@ const SkillMatrixTable: React.FC<SkillMatrixTableProps> = ({
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const API_BASE_URL = 'http://172.25.0.51:8000';
+    const API_BASE_URL = 'http://127.0.0.1:8000';
 
     // Load hierarchy data
     const loadHierarchyData = async () => {

@@ -41,7 +41,7 @@
 //   selectedMonth?: string; // Added this so we can filter by month
 // }
 
-// const API_BASE_URL = "http://172.25.0.51:8000";
+// const API_BASE_URL = "http://127.0.0.1:8000";
 
 // const OperatorStatsRedirect: React.FC<Props> = ({ 
 //   hqId, factoryId, departmentId, lineId, sublineId, stationId, selectedYear, selectedMonth 
@@ -275,7 +275,7 @@ interface Props {
   selectedMonth?: string;
 }
 
-const API_BASE_URL = "http://172.25.0.51:8000";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 const OperatorStatsRedirect: React.FC<Props> = ({ 
   hqId, factoryId, departmentId, lineId, sublineId, stationId, selectedYear, selectedMonth 

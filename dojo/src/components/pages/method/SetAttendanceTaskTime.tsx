@@ -34,9 +34,9 @@ interface PathValidation {
     processed_path: string;
 }
 
-const API_URL = "http://172.25.0.51:8000/set-task-time/attendance/";
-const SETTINGS_URL = "http://172.25.0.51:8000/system-settings/";
-const VALIDATE_URL = "http://172.25.0.51:8000/validate-path/";
+const API_URL = "http://127.0.0.1:8000/set-task-time/attendance/";
+const SETTINGS_URL = "http://127.0.0.1:8000/system-settings/";
+const VALIDATE_URL = "http://127.0.0.1:8000/validate-path/";
 
 const SetAttendanceTaskTime: React.FC = () => {
     const [alarms, setAlarms] = useState<Alarm[]>([]);

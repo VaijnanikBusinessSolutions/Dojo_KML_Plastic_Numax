@@ -12,7 +12,7 @@ import SetAutoFetchTime from './SetAttendanceTaskTime';
 import Modal from './Modal';
 
 // --- API Configuration ---
-const API_BASE_URL = 'http://172.25.0.51:8000/'; 
+const API_BASE_URL = 'http://127.0.0.1:8000/'; 
 const ATTENDANCE_ENDPOINT = 'biometric-attendance/';
 const UPLOAD_ENDPOINT = 'bioattendance/upload-excel/';
 const SUMMARY_ENDPOINT = 'biometric-attendance/summary/'; 

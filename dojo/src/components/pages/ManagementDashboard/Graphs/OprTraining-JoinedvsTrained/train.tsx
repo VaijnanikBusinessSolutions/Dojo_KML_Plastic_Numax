@@ -28,7 +28,7 @@
                 
 //                 // --- DYNAMIC API CALL ---
 //                 // 1. Base URL for the operators chart data
-//                 const baseUrl = 'http://172.25.0.51:8000/chart/operators/';
+//                 const baseUrl = 'http://127.0.0.1:8000/chart/operators/';
 
 //                 // 2. Build query parameters based on the selected filters
 //                 const params = new URLSearchParams();
@@ -174,7 +174,7 @@
 //                 setLoading(true);
 //                 setError(null);
                 
-//                 const baseUrl = 'http://172.25.0.51:8000/chart/operators/';
+//                 const baseUrl = 'http://127.0.0.1:8000/chart/operators/';
 //                 const params = new URLSearchParams();
 
 //                 // --- DYNAMIC FINANCIAL YEAR CALCULATION ---
@@ -307,7 +307,7 @@ const Training: React.FC<TrainingProps> = ({
                 setLoading(true);
                 setError(null);
                 
-                const baseUrl = 'http://172.25.0.51:8000/chart/operators/';
+                const baseUrl = 'http://127.0.0.1:8000/chart/operators/';
                 const params = new URLSearchParams();
 
                 // --- USE SELECTED FINANCIAL YEAR ---

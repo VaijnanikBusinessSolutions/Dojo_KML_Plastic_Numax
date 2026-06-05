@@ -568,19 +568,19 @@ const EmployeeTable: React.FC = () => {
     const fetchData = async () => {
       try {
         const [rolesRes, factoriesRes, departmentsRes, hqsRes, usersRes] = await Promise.all([
-          fetch("http://172.25.0.51:8000/roles/", {
+          fetch("http://127.0.0.1:8000/roles/", {
             headers: { Authorization: `Bearer ${accessToken}` },
           }),
-          fetch("http://172.25.0.51:8000/factories/", {
+          fetch("http://127.0.0.1:8000/factories/", {
             headers: { Authorization: `Bearer ${accessToken}` },
           }),
-          fetch("http://172.25.0.51:8000/departments/", {
+          fetch("http://127.0.0.1:8000/departments/", {
             headers: { Authorization: `Bearer ${accessToken}` },
           }),
-          fetch("http://172.25.0.51:8000/hq/", {
+          fetch("http://127.0.0.1:8000/hq/", {
             headers: { Authorization: `Bearer ${accessToken}` },
           }),
-          fetch("http://172.25.0.51:8000/users/", {
+          fetch("http://127.0.0.1:8000/users/", {
             headers: { Authorization: `Bearer ${accessToken}` },
           }),
         ]);
@@ -687,7 +687,7 @@ const EmployeeTable: React.FC = () => {
     }
 
     try {
-      const response = await fetch("http://172.25.0.51:8000/register/", {
+      const response = await fetch("http://127.0.0.1:8000/register/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

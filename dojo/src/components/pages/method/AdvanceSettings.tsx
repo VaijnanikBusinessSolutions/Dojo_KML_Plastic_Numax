@@ -7,7 +7,7 @@
 // } from "lucide-react";
 
 // // --- API Configuration ---
-// const API_BASE_URL = "http://172.25.0.51:8000"; 
+// const API_BASE_URL = "http://127.0.0.1:8000"; 
 
 // // --- Frontend Form Data Interface ---
 // interface AdvanceSettingsData {
@@ -738,7 +738,7 @@ import {
 } from "lucide-react";
 
 // --- API Configuration ---
-const API_BASE_URL = "http://172.25.0.51:8000"; 
+const API_BASE_URL = "http://127.0.0.1:8000"; 
 
 // --- Frontend Form Data Interface ---
 interface AdvanceSettingsData {

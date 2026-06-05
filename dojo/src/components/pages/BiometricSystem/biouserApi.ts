@@ -1,8 +1,8 @@
 // src/api/biouserApi.ts
 import axios from 'axios';
 
-// const API_URL = 'http://172.25.0.51:8000/biouser/'; // Change if needed
-const API_URL = 'http://172.25.0.51:8000/biouser/'; // Change if needed
+// const API_URL = 'http://127.0.0.1:8000/biouser/'; // Change if needed
+const API_URL = 'http://127.0.0.1:8000/biouser/'; // Change if needed
 
 export interface BioUser {
   id: number;

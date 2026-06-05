@@ -32,7 +32,7 @@
 //         setDownloadSuccess(false);
 
 //         // Call the API endpoint
-//         const response = await fetch('http://172.25.0.51:8000/employees-excel/export_excel');
+//         const response = await fetch('http://127.0.0.1:8000/employees-excel/export_excel');
 
 //         if (!response.ok) {
 //           throw new Error('Network response was not ok');

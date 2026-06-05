@@ -2,7 +2,7 @@ import React, { useState, useEffect, type ChangeEvent } from 'react';
 import axios from 'axios';
 
 // --- API URLs ---
-const BASE_API_URL = 'http://172.25.0.51:8000';
+const BASE_API_URL = 'http://127.0.0.1:8000';
 const UPLOAD_API_URL = `${BASE_API_URL}/template-questions/bulk-upload/`;
 const DOWNLOAD_TEMPLATE_URL = `${BASE_API_URL}/template-questions/download-template/`;
 const QUESTION_PAPER_DETAIL_URL = `${BASE_API_URL}/questionpapers/`;

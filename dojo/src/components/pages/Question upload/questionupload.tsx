@@ -7,7 +7,7 @@
 // import TemplateQuestionBulkUploadModal from './bulkquestionupload';
 
 // // Backend base URL
-// const BACKEND_BASE_URL = 'http://172.25.0.51:8000';
+// const BACKEND_BASE_URL = 'http://127.0.0.1:8000';
 
 // // API Client Setup
 // const apiClient = axios.create({
@@ -541,7 +541,7 @@ import axios from 'axios';
 import TemplateQuestionBulkUploadModal from './bulkquestionupload';
 
 // Backend base URL
-const BACKEND_BASE_URL = 'http://172.25.0.51:8000';
+const BACKEND_BASE_URL = 'http://127.0.0.1:8000';
 
 // API Client Setup
 const apiClient = axios.create({
@@ -601,10 +601,10 @@ const resolveImageUrl = (url: string | null) => {
   
   let finalUrl = url;
 
-  // 1. FIX: Detect double domain (e.g. http://172.25.0.51:8000http://172.25.0.51:8000)
+  // 1. FIX: Detect double domain (e.g. http://127.0.0.1:8000http://127.0.0.1:8000)
   // This removes the first occurrence of the base URL if it appears twice.
-  if (finalUrl.includes('http://172.25.0.51:8000http://172.25.0.51:8000')) {
-    finalUrl = finalUrl.replace('http://172.25.0.51:8000http://172.25.0.51:8000', 'http://172.25.0.51:8000');
+  if (finalUrl.includes('http://127.0.0.1:8000http://127.0.0.1:8000')) {
+    finalUrl = finalUrl.replace('http://127.0.0.1:8000http://127.0.0.1:8000', 'http://127.0.0.1:8000');
   }
 
   // 2. Fallback: If it's a relative path (doesn't start with http), add the base URL

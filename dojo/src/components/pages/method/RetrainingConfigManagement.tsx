@@ -29,7 +29,7 @@
 //     max_count: 2
 //   });
 
-//   const API_BASE_URL = 'http://172.25.0.51:8000';
+//   const API_BASE_URL = 'http://127.0.0.1:8000';
 
 //   useEffect(() => {
 //     fetchConfigs();
@@ -357,7 +357,7 @@ interface RetrainingConfig {
   updated_at: string;
 }
 
-const API_URL = 'http://172.25.0.51:8000/retraining-configs/';
+const API_URL = 'http://127.0.0.1:8000/retraining-configs/';
 
 const RetrainingConfigManager: React.FC = () => {
   const [configs, setConfigs] = useState<RetrainingConfig[]>([]);

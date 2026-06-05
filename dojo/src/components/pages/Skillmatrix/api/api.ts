@@ -1,6 +1,6 @@
 import type { SkillMatrix, Operation, Section, MonthlySkill } from './types';
 
-const API_BASE_URL = 'http://172.25.0.51:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // Generic API call wrapper (fetch-based)
 const apiCall = async <T = any>(

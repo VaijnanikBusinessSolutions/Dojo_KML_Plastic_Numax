@@ -44,7 +44,7 @@
 // }
 
 // /* ---------- API URL ---------- */
-// const API_URL = "http://172.25.0.51:8000/ojt-dashboard/";
+// const API_URL = "http://127.0.0.1:8000/ojt-dashboard/";
 
 // /* ---------- Component ---------- */
 // const Level3OJTStatusList: React.FC = () => {
@@ -615,7 +615,7 @@ interface TraineeInfo {
 }
 
 /* ---------- API URL ---------- */
-const API_URL = "http://172.25.0.51:8000/ojt-dashboard/";
+const API_URL = "http://127.0.0.1:8000/ojt-dashboard/";
 
 /* ---------- Component ---------- */
 const Level3OJTStatusList: React.FC = () => {

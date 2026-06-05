@@ -9,7 +9,7 @@
 //   Station
 // } from '../types/Employee';
 
-// const BASE_URL = 'http://172.25.0.51:8000';
+// const BASE_URL = 'http://127.0.0.1:8000';
 
 // class RetrainingApiService {
 //   private async fetchWithErrorHandling<T>(url: string, options?: RequestInit): Promise<T> {
@@ -318,7 +318,7 @@ import type {
   Station
 } from '../types/Employee';
 
-const BASE_URL = 'http://172.25.0.51:8000';
+const BASE_URL = 'http://127.0.0.1:8000';
 
 class RetrainingApiService {
   private async fetchWithErrorHandling<T>(url: string, options?: RequestInit): Promise<T> {

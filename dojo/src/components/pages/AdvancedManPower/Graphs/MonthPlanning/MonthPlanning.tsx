@@ -111,7 +111,7 @@
 //       end_date: endDate,
 //       group_by: timeView === 'Monthly' ? 'month' : 'week',
 //     });
-//     return `http://172.25.0.51:8000/production-plans/planning-data/?${params.toString()}`;
+//     return `http://127.0.0.1:8000/production-plans/planning-data/?${params.toString()}`;
 //   }, [factoryId, startDate, endDate, timeView]);
 
 //   const { data: apiData, loading, error } = useFetch<ApiData>(apiUrl);
@@ -330,8 +330,8 @@ const MonthPlanning: React.FC<Props> = ({
     if (stationId) params.set('station', stationId.toString());
 
     // NOTE: This URL should match your standalone function's path from urls.py
-    // return `http://172.25.0.51:8000/get-planning-data/?${params.toString()}`;
-    return `http://172.25.0.51:8000/production-plans/planning-data/?${params.toString()}`;
+    // return `http://127.0.0.1:8000/get-planning-data/?${params.toString()}`;
+    return `http://127.0.0.1:8000/production-plans/planning-data/?${params.toString()}`;
   }, [hqId, factoryId, departmentId, lineId, sublineId, stationId, startDate, endDate, timeView]);
 
   const { data: apiData, loading, error } = useFetch<ApiData>(apiUrl);

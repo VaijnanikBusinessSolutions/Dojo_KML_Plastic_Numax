@@ -33,7 +33,7 @@
 //   const [sortKey, setSortKey] = useState<SortKey>('rescheduled_date');
 //   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
-//   const API_BASE = import.meta.env.VITE_API_URL || 'http://172.25.0.51:8000';
+//   const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 //   const loadHistory = async () => {
 //     setLoading(true);
@@ -382,7 +382,7 @@ export default function AttendanceHistory() {
   const [sortKey, setSortKey] = useState<SortKey>('rescheduled_date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://172.25.0.51:8000';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
   const loadHistory = async () => {
     setLoading(true);

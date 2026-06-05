@@ -156,7 +156,7 @@
 //   const ITEMS_PER_PAGE = 10;
 
 //   const [formData, setFormData] = useState<EmployeeData>({ emp_id: '', first_name: '', last_name: '', department: null, date_of_joining: '', birth_date: '', sex: '', email: '', phone: '' });
-//   const API_BASE_URL = 'http://172.25.0.51:8000';
+//   const API_BASE_URL = 'http://127.0.0.1:8000';
 //   const tabs = [ { id: 'overview', name: 'Overview', icon: Users }, { id: 'add-data', name: 'Add Employee', icon: Plus }, { id: 'upload', name: 'Upload Excel', icon: Upload }, { id: 'employee-list', name: 'Employee Records', icon: FileSpreadsheet }, ];
   
 //   const formFields = [ 
@@ -501,7 +501,7 @@ const MasterTableSettings: React.FC = () => {
       phone: '' 
   });
 
-  const API_BASE_URL = 'http://172.25.0.51:8000';
+  const API_BASE_URL = 'http://127.0.0.1:8000';
   const tabs = [ { id: 'overview', name: 'Overview', icon: Users }, { id: 'add-data', name: 'Add Employee', icon: Plus }, { id: 'upload', name: 'Upload Excel', icon: Upload }, { id: 'employee-list', name: 'Employee Records', icon: FileSpreadsheet }, ];
   
   // UPDATED: Added designation to formFields array

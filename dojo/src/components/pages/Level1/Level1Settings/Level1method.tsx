@@ -1,7 +1,7 @@
 // import { Delete, Edit } from "lucide-react";
 // import React, { useEffect, useMemo, useRef, useState } from "react";
 
-// const API_BASE = "http://172.25.0.51:8000";
+// const API_BASE = "http://127.0.0.1:8000";
 // const LEVEL_ID = 1;
 
 // // Types (updated without Topic)
@@ -641,7 +641,7 @@
 import { Delete, Edit, Plus, Search, Calendar, BookOpen, FileText, Link2, Upload, ChevronRight, Check, X, Info, AlertCircle } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-const API_BASE = "http://172.25.0.51:8000";
+const API_BASE = "http://127.0.0.1:8000";
 const LEVEL_ID = 1;
 
 // Types (updated without Topic)

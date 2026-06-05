@@ -26,7 +26,7 @@ const RoleManagement: React.FC = () => {
     setError(''); // Clear previous errors
     try {
       // Adjust the URL if your API endpoint is different
-      const response = await axios.get<{ roles: Role[] }>('http://172.25.0.51:8000/roles/');
+      const response = await axios.get<{ roles: Role[] }>('http://127.0.0.1:8000/roles/');
       // Assuming the API returns an object with a 'roles' key containing an array
       // If it returns just the array, use response.data directly
       setRolesList(response.data.roles || response.data);
@@ -78,7 +78,7 @@ const RoleManagement: React.FC = () => {
 
     // --- API Call ---
     try {
-      const response = await axios.post('http://172.25.0.51:8000/roles/', {
+      const response = await axios.post('http://127.0.0.1:8000/roles/', {
         name: trimmedRoleName,
         is_active: true, // Defaulting to active, adjust if your UI needs to control this
       }, {

@@ -74,7 +74,7 @@ const IndividualQuiz: React.FC = () => {
 
     const fetchQuestions = async () => {
       try {
-        const res = await fetch(`http://172.25.0.51:8000/questionpapers/${paperId}/questions/`);
+        const res = await fetch(`http://127.0.0.1:8000/questionpapers/${paperId}/questions/`);
         if (!res.ok) {
           throw new Error(`Failed to fetch questions: ${res.status}`);
         }
@@ -163,7 +163,7 @@ const IndividualQuiz: React.FC = () => {
     console.log('Auto-submission payload:', payload);
 
     try {
-      const response = await fetch('http://172.25.0.51:8000/submit-web-test/', {
+      const response = await fetch('http://127.0.0.1:8000/submit-web-test/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -219,7 +219,7 @@ const IndividualQuiz: React.FC = () => {
     console.log('Manual submission payload:', payload);
 
     try {
-      const response = await fetch('http://172.25.0.51:8000/submit-web-test/', {
+      const response = await fetch('http://127.0.0.1:8000/submit-web-test/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

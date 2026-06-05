@@ -43,7 +43,7 @@
 // }
 
 // const api = axios.create({
-//   baseURL: 'http://172.25.0.51:8000',
+//   baseURL: 'http://127.0.0.1:8000',
 //   headers: { 'Content-Type': 'application/json' },
 // });
 
@@ -365,7 +365,7 @@ interface Props {
 }
 
 const api = axios.create({
-  baseURL: 'http://172.25.0.51:8000',
+  baseURL: 'http://127.0.0.1:8000',
   headers: { 'Content-Type': 'application/json' },
 });
 

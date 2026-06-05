@@ -221,7 +221,7 @@ import axios from 'axios';
 import TenCycleSheetTable from './TenCycleSheetTable';
 
 // Add your API URL here
-const API_BASE_URL = "http://172.25.0.51:8000";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 // --- MODIFIED ---
 type View = 'dashboard' | 'plan_form' | 'view_plans' | 'observation_sheet' | 'calendar_view' | 'reports';

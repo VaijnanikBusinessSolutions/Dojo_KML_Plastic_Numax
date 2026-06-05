@@ -30,7 +30,7 @@
 //   useEffect(() => {
 //     const fetchAllocations = async () => {
 //       try {
-//         const response = await axios.get('http://172.25.0.51:8000/allocations/');
+//         const response = await axios.get('http://127.0.0.1:8000/allocations/');
 //         setAllocations(response.data);
 //       } catch (err) {
 //         setError('Failed to fetch machine allocations');
@@ -45,7 +45,7 @@
 
 //   const handleApproval = async (id: number, status: 'approved' | 'rejected') => {
 //     try {
-//       await axios.put(`http://172.25.0.51:8000/machine-allocation-approval/${id}/set-status/`, {
+//       await axios.put(`http://127.0.0.1:8000/machine-allocation-approval/${id}/set-status/`, {
 //         approval_status: status
 //       });
 
@@ -319,7 +319,7 @@ const ApprovalList: React.FC = () => {
   useEffect(() => {
     const fetchAllocations = async () => {
       try {
-        const response = await axios.get('http://172.25.0.51:8000/allocations/');
+        const response = await axios.get('http://127.0.0.1:8000/allocations/');
         setAllocations(response.data);
       } catch (err) {
         setError('Failed to fetch machine allocations');
@@ -334,7 +334,7 @@ const ApprovalList: React.FC = () => {
 
   const handleApproval = async (id: number, status: 'approved' | 'rejected') => {
     try {
-      await axios.put(`http://172.25.0.51:8000/machine-allocation-approval/${id}/set-status/`, {
+      await axios.put(`http://127.0.0.1:8000/machine-allocation-approval/${id}/set-status/`, {
         approval_status: status
       });
 

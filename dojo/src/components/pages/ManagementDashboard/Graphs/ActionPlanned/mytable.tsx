@@ -18,7 +18,7 @@ const MyTable = () => {
   // --- API CALLS ---
   const fetchData = async () => {
     try {
-      const response = await axios.get("http://172.25.0.51:8000/api/actions/");
+      const response = await axios.get("http://127.0.0.1:8000/api/actions/");
       setTableData(response.data);
     } catch (error) {
       console.error("Error fetching data", error);
@@ -40,9 +40,9 @@ const MyTable = () => {
 
     try {
       if (editingId) {
-        await axios.put(`http://172.25.0.51:8000/api/actions/${editingId}/`, formData);
+        await axios.put(`http://127.0.0.1:8000/api/actions/${editingId}/`, formData);
       } else {
-        await axios.post("http://172.25.0.51:8000/api/actions/", formData);
+        await axios.post("http://127.0.0.1:8000/api/actions/", formData);
       }
       fetchData();
       closeModal();
@@ -54,7 +54,7 @@ const MyTable = () => {
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete this?")) {
       try {
-        await axios.delete(`http://172.25.0.51:8000/api/actions/${editingId}/`);
+        await axios.delete(`http://127.0.0.1:8000/api/actions/${editingId}/`);
         fetchData();
         closeModal();
       } catch (error) {

@@ -36,7 +36,7 @@
 //   created_at: string;
 // }
 
-// const API_URL = "http://172.25.0.51:8000/tencycle-status/";
+// const API_URL = "http://127.0.0.1:8000/tencycle-status/";
 
 // const TenCycleStatusList: React.FC = () => {
 //   const [data, setData] = useState<TenCycleRecord[]>([]);
@@ -388,7 +388,7 @@ interface TenCycleRecord {
   created_at: string;
 }
 
-const API_URL = "http://172.25.0.51:8000/tencycle-status/";
+const API_URL = "http://127.0.0.1:8000/tencycle-status/";
 
 const TenCycleStatusList: React.FC = () => {
   const [data, setData] = useState<TenCycleRecord[]>([]);

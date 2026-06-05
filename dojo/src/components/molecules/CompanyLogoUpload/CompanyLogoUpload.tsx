@@ -23,7 +23,7 @@ const CompanyLogoUpload: React.FC = () => {
   useEffect(() => {
     const fetchLogos = async () => {
       try {
-        const response = await fetch('http://172.25.0.51:8000/logos/');
+        const response = await fetch('http://127.0.0.1:8000/logos/');
         if (response.ok) {
           const data = await response.json();
           setLogos(data);
@@ -84,8 +84,8 @@ const CompanyLogoUpload: React.FC = () => {
 
     try {
       const url = isEditing 
-        ? `http://172.25.0.51:8000/logos/${formData.id}/`
-        : 'http://172.25.0.51:8000/logos/';
+        ? `http://127.0.0.1:8000/logos/${formData.id}/`
+        : 'http://127.0.0.1:8000/logos/';
       
       const method = isEditing ? 'PUT' : 'POST';
       
@@ -103,7 +103,7 @@ const CompanyLogoUpload: React.FC = () => {
       resetForm();
       
       // Refresh logos list
-      const logosResponse = await fetch('http://172.25.0.51:8000/logos/');
+      const logosResponse = await fetch('http://127.0.0.1:8000/logos/');
       if (logosResponse.ok) {
         const logosData = await logosResponse.json();
         setLogos(logosData);
@@ -143,7 +143,7 @@ const CompanyLogoUpload: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this logo?')) {
       try {
-        const response = await fetch(`http://172.25.0.51:8000/logos/${id}/`, {
+        const response = await fetch(`http://127.0.0.1:8000/logos/${id}/`, {
           method: 'DELETE',
         });
 

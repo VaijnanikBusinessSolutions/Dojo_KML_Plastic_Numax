@@ -4,7 +4,7 @@ import { Plus, Edit2, Trash2, Upload, Folder, Link as LinkIcon, File, Image, X }
 import axios from 'axios';
 // import Nav from "../../../../HomeNav/nav";
 
-const API_BASE = 'http://172.25.0.51:8000';
+const API_BASE = 'http://127.0.0.1:8000';
 
 // Interfaces for your data models
 interface MainTopic { id: number; title: string; }
@@ -228,11 +228,11 @@ const handleMaterialUpload = async (e: React.FormEvent) => {
   //     if (content.training_file.startsWith('http')) {
   //       fileURL = content.training_file;
   //     } else if (content.training_file.startsWith('/media/')) {
-  //       fileURL = `http://172.25.0.51:8000${content.training_file}`;
+  //       fileURL = `http://127.0.0.1:8000${content.training_file}`;
   //     } else if (content.training_file.startsWith('media/')) {
-  //       fileURL = `http://172.25.0.51:8000/${content.training_file}`;
+  //       fileURL = `http://127.0.0.1:8000/${content.training_file}`;
   //     } else {
-  //       fileURL = `http://172.25.0.51:8000/media/${content.training_file}`;
+  //       fileURL = `http://127.0.0.1:8000/media/${content.training_file}`;
   //     }
 
   //     console.log('Opening file URL:', fileURL);

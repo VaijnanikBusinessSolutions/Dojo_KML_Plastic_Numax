@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ArrowLeft, BookOpen, Clock, Users, Edit, FileQuestion, Grid, List, Trash2, Upload, Eye, FileText, Link, Presentation, Video, Image, Home, CheckCircle, XCircle, ChevronDown } from 'lucide-react';
 
-const API_BASE = "http://172.25.0.51:8000";
+const API_BASE = "http://127.0.0.1:8000";
 
 // --- INTERFACES ---
 interface TabData { id: string; title: string; content: string; }

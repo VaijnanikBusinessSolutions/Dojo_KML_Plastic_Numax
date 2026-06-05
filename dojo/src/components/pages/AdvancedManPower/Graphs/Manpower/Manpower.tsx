@@ -125,7 +125,7 @@
 //       else if (selectedLineId) params.set('line', String(selectedLineId));
 //       else if (selectedShopFloorId) params.set('shop_floor', String(selectedShopFloorId));
 
-//       const url = `http://172.25.0.51:8000/production-data/trend-data/?${params.toString()}`;
+//       const url = `http://127.0.0.1:8000/production-data/trend-data/?${params.toString()}`;
 //       console.log('Fetching from:', url);
 //       const response = await fetch(url);
 //       if (!response.ok) {
@@ -369,7 +369,7 @@ const ManpowerTrendChart: React.FC<Props> = ({
       if (selectedSublineId) params.set('subline', String(selectedSublineId));
       if (selectedStationId) params.set('station', String(selectedStationId));
 
-      const url = `http://172.25.0.51:8000/production-data/trend-data/?${params.toString()}`;
+      const url = `http://127.0.0.1:8000/production-data/trend-data/?${params.toString()}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();

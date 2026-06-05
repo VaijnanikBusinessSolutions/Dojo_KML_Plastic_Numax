@@ -1,5 +1,5 @@
 export const API_ENDPOINTS = {
-  BASE_URL: 'http://172.25.0.51:8000',
+  BASE_URL: 'http://127.0.0.1:8000',
   USERS: '/user/',
   AUTH: '/auth/',
   HQ: 'hq/',

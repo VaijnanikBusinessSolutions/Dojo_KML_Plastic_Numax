@@ -11,7 +11,7 @@
 //     stationId?: string;
 // }
 
-// const API_BASE_URL = "http://172.25.0.51:8000";
+// const API_BASE_URL = "http://127.0.0.1:8000";
 
 // const Defects: React.FC<DefectProps> = ({
 //     hqId, factoryId, departmentId, lineId, sublineId, stationId
@@ -154,7 +154,7 @@ interface DefectProps {
   financialYear: string; // NEW
 }
 
-const API_BASE_URL = "http://172.25.0.51:8000";
+const API_BASE_URL = "http://127.0.0.1:8000";
 
 const Defects: React.FC<DefectProps> = ({
   hqId, factoryId, departmentId, lineId, sublineId, stationId, financialYear

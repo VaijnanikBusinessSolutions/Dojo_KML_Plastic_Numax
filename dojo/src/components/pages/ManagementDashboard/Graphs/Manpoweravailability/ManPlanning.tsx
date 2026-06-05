@@ -29,7 +29,7 @@
 //                 setLoading(true);
 //                 setError(null);
 
-//                 const baseUrl = 'http://172.25.0.51:8000/chart/month-planning/';
+//                 const baseUrl = 'http://127.0.0.1:8000/chart/month-planning/';
 //                 const params = new URLSearchParams();
 
 //                 // --- ENSURE WE GET 2025 DATA ---
@@ -157,7 +157,7 @@ const MonthPlanning: React.FC<MonthPlanningProps> = ({
         setLoading(true);
         setError(null);
 
-        const baseUrl = 'http://172.25.0.51:8000/chart/month-planning/';
+        const baseUrl = 'http://127.0.0.1:8000/chart/month-planning/';
         const params = new URLSearchParams();
 
         // Use selected financial year

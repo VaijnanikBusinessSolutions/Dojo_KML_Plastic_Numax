@@ -234,7 +234,7 @@ const TrainingFeedbackForm: React.FC = () => {
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [currentPage, setCurrentPage] = useState<1 | 2>(1);
 
-  const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://172.25.0.51:8000';
+  const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://127.0.0.1:8000';
 
   const validatePage1 = (): boolean => {
     const newErrors: Partial<FormData> = {};
@@ -1133,7 +1133,7 @@ export default TrainingFeedbackForm;
 //   // CHANGED: Default page is now 2
 //   const [currentPage, setCurrentPage] = useState<1 | 2>(2);
 
-//   const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://172.25.0.51:8000';
+//   const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://127.0.0.1:8000';
 
 //   /* COMMENTED OUT: Form 1 validation
 //   const validatePage1 = (): boolean => {

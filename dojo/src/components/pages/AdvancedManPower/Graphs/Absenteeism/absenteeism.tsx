@@ -4,7 +4,7 @@
 // } from 'recharts';
 
 // // --- CONFIGURATION ---
-// const API_BASE_URL = 'http://172.25.0.51:8000';
+// const API_BASE_URL = 'http://127.0.0.1:8000';
 // const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 // // --- INTERFACES ---
@@ -233,7 +233,7 @@ import {
 } from 'recharts';
 
 // --- CONFIGURATION ---
-const API_BASE_URL = 'http://172.25.0.51:8000';
+const API_BASE_URL = 'http://127.0.0.1:8000';
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 // --- INTERFACES ---
