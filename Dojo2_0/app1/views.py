@@ -16994,8 +16994,84 @@ from rest_framework import status
 
 
 class BiometricAttendanceViewSet(viewsets.ModelViewSet):
-    queryset = BiometricAttendance.objects.all()
     serializer_class = BiometricAttendanceSerializer
+
+    def get_queryset(self):
+        queryset = BiometricAttendance.objects.all()
+        date_param = self.request.query_params.get('date')
+        if date_param:
+            queryset = queryset.filter(attendance_date=date_param)
+        return queryset.order_by('card_no')
+
+    @action(detail=False, methods=['post'], url_path='sync-devices')
+    def sync_devices(self, request):
+        date_str = request.data.get('date') or request.query_params.get('date')
+        if not date_str:
+            return Response({'error': 'Date is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            from datetime import datetime
+            date_obj = datetime.strptime(date_str.strip(), "%Y-%m-%d").date()
+        except ValueError:
+            return Response({'error': 'Invalid date format. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        from .services.easytime_client import EasyTimeClient
+        from .models import BioUser, LocalAttendanceLog
+        from django.utils import timezone
+        from .tasks import convert_local_logs_to_biometric_attendance
+        
+        # 1. Fetch from EasyTime API for this date
+        from_dt = f"{date_str} 00:00:00"
+        to_dt = f"{date_str} 23:59:59"
+        
+        client = EasyTimeClient()
+        try:
+            raw_logs = client.get_attendance_logs(from_dt, to_dt)
+        except Exception as e:
+            return Response({'error': f'Failed to fetch logs from EasyTime: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # 2. Save raw logs locally if they exist
+        saved_count = 0
+        if raw_logs:
+            local_users = {user.employeeid: user for user in BioUser.objects.all()}
+            for log in raw_logs:
+                emp_code = log.get('emp_code')
+                punch_time_str = log.get('punch_time')
+                terminal_sn = log.get('terminal_sn')
+                area_alias = log.get('area_alias')
+                
+                try:
+                    dt_obj = datetime.strptime(punch_time_str, "%Y-%m-%d %H:%M:%S")
+                    aware_dt = timezone.make_aware(dt_obj)
+                except (ValueError, TypeError):
+                    continue
+                
+                user_obj = local_users.get(emp_code)
+                if not user_obj:
+                    continue
+                
+                try:
+                    _, created = LocalAttendanceLog.objects.get_or_create(
+                        bio_user=user_obj,
+                        punch_time=aware_dt,
+                        device_sn=terminal_sn,
+                        defaults={'area_alias': area_alias}
+                    )
+                    if created:
+                        saved_count += 1
+                except Exception:
+                    pass
+        
+        # 3. Aggregate and convert to BiometricAttendance
+        try:
+            convert_count = convert_local_logs_to_biometric_attendance(date_obj)
+        except Exception as e:
+            return Response({'error': f'Failed during logs conversion: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response({
+            'success': True,
+            'message': f'Synced and converted biometric records. New raw logs: {saved_count}, BiometricAttendance records: {convert_count}'
+        }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['delete'], url_path='clear-date')
     def clear_date(self, request):

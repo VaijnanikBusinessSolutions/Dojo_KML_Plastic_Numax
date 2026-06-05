@@ -113,10 +113,17 @@ const generateYearOptions = () => {
 const AttendanceSystem: React.FC = () => {
   const [activeTab, setActiveTab] = useState("daily-ops");
   const [loading, setLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
   
   // Daily State
   const [dailyData, setDailyData] = useState<AttendanceRecord[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>(""); 
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }); 
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [dailySearchTerm, setDailySearchTerm] = useState("");
   const [dailyStatusFilter, setDailyStatusFilter] = useState<string>("all");
@@ -306,10 +313,11 @@ const AttendanceSystem: React.FC = () => {
     if (!selectedDate) { setDailyData([]); return; }
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}${ATTENDANCE_ENDPOINT}`);
+      const response = await axios.get(`${API_BASE_URL}${ATTENDANCE_ENDPOINT}`, {
+        params: { date: selectedDate }
+      });
       let rawData = Array.isArray(response.data) ? response.data : (response.data.results || []);
-      const filteredByDate = rawData.filter((item: any) => item.attendance_date === selectedDate);
-      setDailyData(filteredByDate);
+      setDailyData(rawData);
       setDailyCurrentPage(1);
     } catch (err) { console.error(err); } finally { setLoading(false); }
   }, [selectedDate]);
@@ -330,7 +338,25 @@ const AttendanceSystem: React.FC = () => {
         fetchDailyData();
     } catch (err: any) {
         alert("Upload failed: " + (err.response?.data?.error || err.message));
-    } finally { setLoading(false); }
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  const handleBiometricSync = async () => {
+    if (!selectedDate) return alert("Please select a date first.");
+    setSyncLoading(true);
+    try {
+        const response = await axios.post(`${API_BASE_URL}${ATTENDANCE_ENDPOINT}sync-devices/`, { date: selectedDate });
+        alert(response.data.message || "Biometric devices synced successfully.");
+        fetchDailyData();
+    } catch (err: any) {
+        console.error("Biometric sync error:", err);
+        const errorMsg = err.response?.data?.error || err.message || "Failed to sync device logs.";
+        alert("Sync failed: " + errorMsg);
+    } finally {
+        setSyncLoading(false);
+    }
   };
 
   const fetchMonthlySummary = useCallback(async () => {
@@ -929,8 +955,8 @@ const AttendanceSystem: React.FC = () => {
       <div className="space-y-6">
           {/* Upload Section */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <div className="flex flex-col lg:flex-row gap-6">
-                  <div className="w-full lg:w-1/3">
+              <div className="flex flex-col lg:flex-row gap-6 items-end">
+                  <div className="w-full lg:w-1/4">
                       <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center">
                           <Calendar className="w-4 h-4 mr-2 text-blue-600"/>
                           1. Select Work Date
@@ -942,11 +968,11 @@ const AttendanceSystem: React.FC = () => {
                           className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl bg-blue-50 text-blue-900 font-medium focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all"
                       />
                   </div>
-                  <form onSubmit={handleUpload} className="w-full lg:w-2/3 flex flex-col sm:flex-row gap-4">
-                      <div className="flex-1">
+                  <form onSubmit={handleUpload} className="w-full lg:w-1/2 flex flex-col sm:flex-row gap-4 items-end">
+                      <div className="flex-1 w-full">
                           <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center">
                               <FileSpreadsheet className="w-4 h-4 mr-2 text-green-600"/>
-                              2. Select Excel File
+                              2. Select Excel File (Manual Import)
                           </label>
                           <div className="relative">
                               <input 
@@ -957,17 +983,29 @@ const AttendanceSystem: React.FC = () => {
                               />
                           </div>
                       </div>
-                      <div className="flex items-end">
-                          <button 
-                              type="submit" 
-                              disabled={!uploadFile || !selectedDate || loading} 
-                              className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-                          >
-                              {loading ? <Loader2 className="animate-spin w-5 h-5"/> : <Upload className="w-5 h-5"/>}
-                              Upload
-                          </button>
-                      </div>
+                      <button 
+                          type="submit" 
+                          disabled={!uploadFile || !selectedDate || loading} 
+                          className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                      >
+                          {loading ? <Loader2 className="animate-spin w-5 h-5"/> : <Upload className="w-5 h-5"/>}
+                          Upload
+                      </button>
                   </form>
+                  <div className="w-full lg:w-1/4">
+                      <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center invisible lg:visible">
+                          <RefreshCw className="w-4 h-4 mr-2 text-blue-600"/>
+                          3. Device Sync
+                      </label>
+                      <button 
+                          onClick={handleBiometricSync} 
+                          disabled={!selectedDate || loading || syncLoading}
+                          className="w-full px-6 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                      >
+                          {syncLoading ? <Loader2 className="animate-spin w-5 h-5"/> : <RefreshCw className="w-5 h-5"/>}
+                          {syncLoading ? "Syncing..." : "Sync Biometric Devices"}
+                      </button>
+                  </div>
               </div>
           </div>
 

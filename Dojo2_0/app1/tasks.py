@@ -300,9 +300,113 @@ def auto_sync_easytime_logs():
                     summary.save()
                     updated_history_count += 1
 
-    result_msg = f"✅ Auto-Sync Done. New Logs: {saved_count}, History Updates: {updated_history_count}"
+    # 5. Convert today's logs to BiometricAttendance
+    convert_count = 0
+    try:
+        local_now = timezone.localtime(timezone.now())
+        convert_count = convert_local_logs_to_biometric_attendance(local_now.date())
+    except Exception as e:
+        print(f"⚠️ [Celery] Error converting logs to BiometricAttendance: {e}")
+
+    result_msg = f"✅ Auto-Sync Done. New Logs: {saved_count}, History Updates: {updated_history_count}, BiometricAttendance: {convert_count}"
     print(f"[Celery] {result_msg}")
     return result_msg
+
+
+def convert_local_logs_to_biometric_attendance(date_obj):
+    """
+    Reads LocalAttendanceLog punches for attendance devices on a given date,
+    aggregates them, and populates the BiometricAttendance model.
+    """
+    from django.utils import timezone
+    from django.utils.timezone import make_aware
+    from datetime import datetime, time
+    from .models import BioUser, BiometricDevice, LocalAttendanceLog, BiometricAttendance, MasterTable
+
+    # Find all serial numbers of devices that are attendance devices
+    attendance_sns = list(BiometricDevice.objects.filter(is_attendance_device=True).values_list('serial_number', flat=True))
+    if not attendance_sns:
+        print("[EasyTime Sync] No active attendance devices configured.")
+        return 0
+
+    # Date range bounds for the day in the active local timezone
+    start_dt = make_aware(datetime.combine(date_obj, datetime.min.time()))
+    end_dt = make_aware(datetime.combine(date_obj, datetime.max.time()))
+
+    # Get distinct users who punched on this date on attendance devices
+    users_with_punches = BioUser.objects.filter(
+        logs__punch_time__range=(start_dt, end_dt),
+        logs__device_sn__in=attendance_sns
+    ).distinct()
+
+    saved_count = 0
+    for user in users_with_punches:
+        punches = LocalAttendanceLog.objects.filter(
+            bio_user=user,
+            punch_time__range=(start_dt, end_dt),
+            device_sn__in=attendance_sns
+        ).order_by('punch_time')
+
+        if not punches.exists():
+            continue
+
+        first_punch_dt = punches.first().punch_time
+        # Localize datetimes to default timezone (Asia/Kolkata) to show correct times
+        first_punch_local = timezone.localtime(first_punch_dt)
+        in_time_val = first_punch_local.time()
+
+        if punches.count() > 1:
+            last_punch_dt = punches.last().punch_time
+            last_punch_local = timezone.localtime(last_punch_dt)
+            out_time_val = last_punch_local.time()
+            
+            # Simple duration
+            duration = last_punch_dt - first_punch_dt
+            hours = duration.total_seconds() / 3600.0
+            hrs_works = f"{hours:.2f}"
+        else:
+            out_time_val = None
+            hrs_works = "0.00"
+
+        # Fetch employee details from MasterTable
+        try:
+            master = MasterTable.objects.get(emp_id=user.employeeid)
+            employee_name = f"{master.first_name} {master.last_name or ''}".strip()
+            department = master.department.department_name if master.department else "General"
+            designation = master.designation or ""
+        except MasterTable.DoesNotExist:
+            employee_name = f"{user.first_name} {user.last_name or ''}".strip()
+            department = "General"
+            designation = ""
+
+        # Update or create in BiometricAttendance
+        BiometricAttendance.objects.update_or_create(
+            card_no=user.employeeid,
+            attendance_date=date_obj,
+            defaults={
+                'pay_code': user.employeeid,
+                'employee_name': employee_name,
+                'department': department,
+                'designation': designation,
+                'shift': "General",
+                'in_time': in_time_val,
+                'out_time': out_time_val,
+                'hrs_works': hrs_works,
+                'status': "P",
+                'manual': "Biometric Device Sync",
+                # Ignore calculated fields as requested
+                'late_arrival': "",
+                'early_arrival': "",
+                'shift_early': "",
+                'excess_lunch': "",
+                'ot': "",
+                'ot_amount': "",
+                'os': ""
+            }
+        )
+        saved_count += 1
+
+    return saved_count
 
 
 # -----------Numax easytimepro End ---------------------------
