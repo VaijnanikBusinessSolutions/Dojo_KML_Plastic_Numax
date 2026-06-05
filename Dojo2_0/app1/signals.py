@@ -1539,12 +1539,6 @@ def sync_user_profile_and_push_to_devices(bio_user, target_devices, target_areas
     print(f"--> [EasyTime] Syncing profile {bio_user.employeeid} with Areas: {final_area_list}")
     client.create_employee_raw(payload)
     
-    # 6. Fetch Internal User ID
-    internal_uid = client.get_employee_internal_id(bio_user.employeeid)
-    if not internal_uid:
-        print(f"❌ User ID resolution failed for {bio_user.employeeid}")
-        return
-        
     sync_url = f"{client.base_url}/iclock/api/terminals/sync_data_to_device/"
     
     # 7. Push Biometric Templates to Devices in Parallel
@@ -1554,10 +1548,14 @@ def sync_user_profile_and_push_to_devices(bio_user, target_devices, target_areas
             print(f"   ℹ️ User {bio_user.employeeid} already enrolled on {dev.name}. Skipping sync push.")
             return
 
+        term_id = client.get_terminal_id_by_sn(dev.serial_number)
+        if not term_id:
+            print(f"   ❌ Sync Failed: Could not resolve terminal ID for SN {dev.serial_number}")
+            return
+
         sync_payload = {
-            "devices_sn": [dev.serial_number],
-            "user_id": [str(internal_uid)], 
-            "emp_code": True,
+            "devices": [term_id],
+            "employees": True,
             "finger_print": True, 
             "face": True, 
             "vl_face": True 

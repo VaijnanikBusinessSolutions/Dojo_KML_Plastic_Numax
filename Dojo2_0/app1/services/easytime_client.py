@@ -282,16 +282,10 @@ class EasyTimeClient:
         self.create_employee_raw(payload)
 
         # --- STEP 7: FORCE BIO-DATA PUSH ---
-        internal_uid = self.get_employee_internal_id(bio_user.employeeid)
-        
-        if not internal_uid:
-             return {"status": "error", "message": "User ID resolution failed after sync."}
-
         # Use 'sync_data_to_device' to force biometrics transfer
         sync_payload = {
-            "devices_sn": [serial_number],
-            "user_id": [str(internal_uid)], 
-            "emp_code": True,
+            "devices": [term_id],
+            "employees": True,
             "finger_print": True, 
             "face": True, 
             "vl_face": True 
@@ -300,8 +294,8 @@ class EasyTimeClient:
         sync_url = f"{self.base_url}/iclock/api/terminals/sync_data_to_device/"
 
         try:
-            requests.post(sync_url, json=sync_payload, headers=self.get_headers())
-            return {"status": "success", "message": f"Bio-Synced to {serial_number}"}
+            res = requests.post(sync_url, json=sync_payload, headers=self.get_headers())
+            return self._handle_response(res)
         except Exception as e:
             return {"status": "error", "message": str(e)}
 
