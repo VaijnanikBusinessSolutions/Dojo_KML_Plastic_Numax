@@ -5,7 +5,5 @@ class App1Config(AppConfig):
     name = 'app1'
 
     def ready(self):
-        import app1.signals  # Safe to import here, signals will work
-    def ready(self):
-        print("🚀 App1 ready() called")
+        print("[App1] ready() called")
         import app1.signals

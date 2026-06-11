@@ -566,10 +566,20 @@ const MasterTableSettings: React.FC = () => {
 
   const handleDelete = async (empId: string) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
+      const deleteBiometric = window.confirm('Do you also want to delete this employee from the Biometric Devices (EasyTime)?');
       setLoading(true);
-      try { const response = await fetch(`${API_BASE_URL}/mastertable/${empId}/`, { method: 'DELETE' }); if (!response.ok) throw new Error('Failed to delete employee'); await fetchEmployees(); alert('Employee deleted successfully!'); } 
-      catch (error) { alert('Failed to delete employee. Please try again.'); } 
-      finally { setLoading(false); }
+      try {
+        const response = await fetch(`${API_BASE_URL}/mastertable/${empId}/` + (deleteBiometric ? "?delete_biometric=true" : ""), {
+          method: 'DELETE',
+        });
+        if (!response.ok) throw new Error('Failed to delete employee');
+        await fetchEmployees();
+        alert('Employee deleted successfully!');
+      } catch (error) {
+        alert('Failed to delete employee. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

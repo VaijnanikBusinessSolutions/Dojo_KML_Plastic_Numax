@@ -7,7 +7,7 @@ interface DeleteConfirmationModalProps {
     step: number;
     onClose: () => void;
     onConfirmStep1: () => void;
-    onConfirmFinal: () => Promise<void>;
+    onConfirmFinal: (deleteBiometric: boolean) => Promise<void>;
 }
 
 const Step1Content = ({ employee, onClose, onConfirmStep1 }: Pick<DeleteConfirmationModalProps, "employee" | "onClose" | "onConfirmStep1">) => (
@@ -32,11 +32,12 @@ const Step1Content = ({ employee, onClose, onConfirmStep1 }: Pick<DeleteConfirma
 
 const Step2Content = ({ employee, onClose, onConfirmFinal }: Pick<DeleteConfirmationModalProps, "employee" | "onClose" | "onConfirmFinal">) => {
     const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteBiometric, setDeleteBiometric] = useState(false);
 
     const handleFinalConfirm = async () => {
         setIsDeleting(true);
         try {
-            await onConfirmFinal();
+            await onConfirmFinal(deleteBiometric);
             // The parent will handle closing the modal on success
         } catch (err) {
             // Error is handled in the parent, but we must stop the loading state here
@@ -56,6 +57,21 @@ const Step2Content = ({ employee, onClose, onConfirmFinal }: Pick<DeleteConfirma
                 <p>Deleting <strong className="text-red-800">{`${employee.first_name} ${employee.last_name}`}</strong> is <strong className="font-extrabold">irreversible</strong>.</p>
                 <p className="mt-2">All associated data, including OJT records, exam results, and cycle performance, will be <strong className="font-extrabold">permanently lost</strong>.</p>
             </div>
+            
+            {/* Biometric Deletion Checkbox (unchecked by default) */}
+            <div className="mt-4 flex items-center justify-center gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <input
+                    type="checkbox"
+                    id="deleteBiometric"
+                    checked={deleteBiometric}
+                    onChange={(e) => setDeleteBiometric(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                />
+                <label htmlFor="deleteBiometric" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                    Also delete employee from Biometric Devices (EasyTime)
+                </label>
+            </div>
+
             <div className="mt-6 flex justify-center gap-4">
                 <Button onClick={onClose} variant="secondary" disabled={isDeleting}>
                     Cancel

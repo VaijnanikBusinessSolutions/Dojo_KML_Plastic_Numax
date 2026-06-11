@@ -901,6 +901,20 @@ class MasterTableViewSet(viewsets.ModelViewSet):
     serializer_class = MasterTableSerializer
     parser_classes = (MultiPartParser, FormParser, JSONParser)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Intercept the query parameter to decide if biometric deletion is requested
+        delete_biometric = request.query_params.get('delete_biometric') == 'true'
+        instance._delete_biometric = delete_biometric
+        
+        # Set a thread-local flag to bypass skill matrix biometric sync during cascade deletion
+        from .signals import _thread_locals
+        setattr(_thread_locals, 'bypass_skill_sync', True)
+        try:
+            return super().destroy(request, *args, **kwargs)
+        finally:
+            setattr(_thread_locals, 'bypass_skill_sync', False)
+
     @action(detail=False, methods=['get'])
     def download_template(self, request):
         """Download Excel template with headers only"""

@@ -412,10 +412,10 @@ const MasterTable = () => {
         } catch (error) { console.error("Failed to update employee:", error); throw error; }
     };
 
-    const handleFinalDelete = async () => {
+    const handleFinalDelete = async (deleteBiometric: boolean) => {
         if (!deletingEmployee) return;
         try {
-            const url = `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.EMPLOYEE_DETAIL(deletingEmployee.emp_id)}`;
+            const url = `${API_ENDPOINTS.BASE_URL}${API_ENDPOINTS.EMPLOYEE_DETAIL(deletingEmployee.emp_id)}` + (deleteBiometric ? "?delete_biometric=true" : "");
             await axios.delete(url);
             setEmployees(prev => prev.filter(emp => emp.emp_id !== deletingEmployee.emp_id));
             handleCancelDelete();

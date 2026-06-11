@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import OJTScore, Score, SkillMatrix, TraineeInfo, MasterTable, Station, HierarchyStructure, OperatorPerformanceEvaluation
 
+_thread_locals = threading.local()
 
 def run_after_delay(func, delay, *args, **kwargs):
     """Run a function after N seconds without blocking request"""
@@ -1663,6 +1664,10 @@ def skill_matrix_delete_biometric_trigger(sender, instance, **kwargs):
     When a SkillMatrix entry is deleted, recalculate operator's valid areas
     and remove access to machines they no longer qualify for.
     """
+    if getattr(_thread_locals, 'bypass_skill_sync', False):
+        print(f"--> [SkillMatrix] Bypassing biometric sync for {instance.emp_id} (MasterTable deletion in progress)")
+        return
+
     try:
         emp_record = MasterTable.objects.get(emp_id=instance.emp_id)
         bio_user = BioUser.objects.filter(employeeid=instance.emp_id).first()
@@ -1745,14 +1750,24 @@ def sync_attendance_devices(sender, instance, created, **kwargs):
 # ---------------------------------------------------
 @receiver(pre_delete, sender=MasterTable)
 def delete_user_from_easytime_master(sender, instance, **kwargs):
-    print(f"--> [MasterTable] Requesting delete for {instance.emp_id}...")
-    client = EasyTimeClient()
-    result = client.delete_employee(instance.emp_id)
-    
-    if result.get('status') == 'success':
-        print("✅ Deleted Successfully from EasyTimePro")
+    # Only delete from biometric system if requested (e.g. via query param _delete_biometric = True)
+    if getattr(instance, '_delete_biometric', False):
+        print(f"--> [MasterTable] Requesting delete for {instance.emp_id} from EasyTime Pro...")
+        from .models import BioUser
+        bio_user_qs = BioUser.objects.filter(employeeid=instance.emp_id)
+        if bio_user_qs.exists():
+            # This deletion will trigger delete_user_from_easytime_frontend signal and call client.delete_employee
+            bio_user_qs.delete()
+        else:
+            # Manually delete from EasyTime Pro if no local BioUser exists
+            client = EasyTimeClient()
+            result = client.delete_employee(instance.emp_id)
+            if result.get('status') == 'success':
+                print("✅ Deleted Successfully from EasyTimePro")
+            else:
+                print(f"⚠️ Delete Warning: {result.get('message')}")
     else:
-        print(f"⚠️ Delete Warning: {result.get('message')}")
+        print(f"--> [MasterTable] Skipping biometric delete for {instance.emp_id} (Dojo-only delete)")
 
 
 # ---------------------------------------------------
