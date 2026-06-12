@@ -911,7 +911,8 @@ class MasterTableViewSet(viewsets.ModelViewSet):
         from .signals import _thread_locals
         setattr(_thread_locals, 'bypass_skill_sync', True)
         try:
-            return super().destroy(request, *args, **kwargs)
+            self.perform_destroy(instance)
+            return Response(status=status.HTTP_204_NO_CONTENT)
         finally:
             setattr(_thread_locals, 'bypass_skill_sync', False)
 

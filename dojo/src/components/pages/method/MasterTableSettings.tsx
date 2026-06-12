@@ -471,6 +471,86 @@ const EditEmployeeModal = ({ employee, onClose, onSave, departments }: EditEmplo
     );
 };
 
+interface DeleteConfirmationModalProps {
+    employee: EmployeeData;
+    onClose: () => void;
+    onConfirm: (deleteBiometric: boolean) => Promise<void>;
+}
+
+const DeleteConfirmationModal = ({ employee, onClose, onConfirm }: DeleteConfirmationModalProps) => {
+    const [deleteBiometric, setDeleteBiometric] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            await onConfirm(deleteBiometric);
+            onClose();
+        } catch (error) {
+            console.error("Failed to delete employee:", error);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 md:p-8 relative transition-transform transform-gpu animate-fade-in-up border border-gray-100">
+                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Close modal">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <div className="text-center mb-6">
+                    <div className="bg-red-100 p-3 rounded-full w-fit mx-auto mb-4">
+                        <Trash2 className="h-6 w-6 text-red-600" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800">Delete Employee</h2>
+                    <p className="text-sm text-gray-500 mt-2">
+                        Are you sure you want to delete <span className="font-semibold text-gray-700">{`${employee.first_name} ${employee.last_name}`}</span> ({employee.emp_id})? This action cannot be undone.
+                    </p>
+                </div>
+
+                <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200 text-left">
+                    <label className="flex items-start gap-3 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={deleteBiometric}
+                            onChange={(e) => setDeleteBiometric(e.target.checked)}
+                            className="mt-1 h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        />
+                        <div>
+                            <span className="text-sm font-semibold text-gray-800">Remove from Biometrics</span>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                Delete this employee's profile and templates from the EasyTime server and all biometric devices.
+                            </p>
+                        </div>
+                    </label>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isDeleting}
+                        className="px-5 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="px-5 py-2.5 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center min-w-[100px]"
+                    >
+                        {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 // --- MAIN COMPONENT ---
 const MasterTableSettings: React.FC = () => {
@@ -481,6 +561,7 @@ const MasterTableSettings: React.FC = () => {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<EmployeeData | null>(null);
+  const [deletingEmployee, setDeletingEmployee] = useState<EmployeeData | null>(null);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -564,22 +645,19 @@ const MasterTableSettings: React.FC = () => {
     }
   };
 
-  const handleDelete = async (empId: string) => {
-    if (window.confirm('Are you sure you want to delete this employee?')) {
-      const deleteBiometric = window.confirm('Do you also want to delete this employee from the Biometric Devices (EasyTime)?');
-      setLoading(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/mastertable/${empId}/` + (deleteBiometric ? "?delete_biometric=true" : ""), {
-          method: 'DELETE',
-        });
-        if (!response.ok) throw new Error('Failed to delete employee');
-        await fetchEmployees();
-        alert('Employee deleted successfully!');
-      } catch (error) {
-        alert('Failed to delete employee. Please try again.');
-      } finally {
-        setLoading(false);
-      }
+  const executeDelete = async (empId: string, deleteBiometric: boolean) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/mastertable/${empId}/` + (deleteBiometric ? "?delete_biometric=true" : ""), {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete employee');
+      await fetchEmployees();
+      alert('Employee deleted successfully!');
+    } catch (error) {
+      alert('Failed to delete employee. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -641,7 +719,12 @@ const MasterTableSettings: React.FC = () => {
     let filtered = employeeData;
     if (searchQuery) { 
         const q = searchQuery.toLowerCase(); 
-        filtered = filtered.filter(emp => emp.first_name.toLowerCase().includes(q) || emp.last_name.toLowerCase().includes(q) || (emp.email || '').toLowerCase().includes(q) || emp.emp_id.toLowerCase().includes(q)); 
+        filtered = filtered.filter(emp => 
+            (emp.first_name || '').toLowerCase().includes(q) || 
+            (emp.last_name || '').toLowerCase().includes(q) || 
+            (emp.email || '').toLowerCase().includes(q) || 
+            (emp.emp_id || '').toLowerCase().includes(q)
+        ); 
     }
     if (selectedDepartment) { filtered = filtered.filter(emp => emp.department === parseInt(selectedDepartment, 10)); }
     return filtered;
@@ -655,24 +738,16 @@ const MasterTableSettings: React.FC = () => {
       case 'overview':
         return ( <div className="space-y-8"> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"> {getOverviewStats().map((stat, index) => { const Icon = stat.icon; return ( <div key={index} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl"><div className="flex items-center justify-between"><div><p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p><p className="text-3xl font-bold text-gray-900">{stat.value}</p></div><div className={`${stat.color} p-3 rounded-xl`}><Icon className="h-6 w-6 text-white" /></div></div></div> ); })} </div> <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"> <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"> <h3 className="text-xl font-semibold text-gray-800 mb-4">Department Distribution</h3> <div className="space-y-3"> {getDepartmentStats().map((dept, index) => ( <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"> <div className="flex items-center"><div className="bg-blue-100 p-2 rounded-lg mr-3"><Building2 className="h-4 w-4 text-blue-600" /></div><span className="font-medium text-gray-800">{dept.department}</span></div> <span className="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded-full">{dept.count}</span> </div> ))} </div> </div> <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100"> <h3 className="text-xl font-semibold text-gray-800 mb-4">Recent Additions</h3> <div className="space-y-4"> {employeeData.slice(-3).map((employee, index) => ( <div key={index} className="flex items-center p-4 bg-gray-50 rounded-xl"> <div className="bg-green-100 p-2 rounded-lg mr-4"><User className="h-5 w-5 text-green-600" /></div> <div><p className="font-medium text-gray-800">{`${employee.first_name} ${employee.last_name}`.trim()}</p><p className="text-sm text-gray-600">{getDepartmentName(employee.department)} • {employee.emp_id}</p></div> </div> ))} </div> </div> </div> </div> );
       case 'add-data':
-        return ( <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100"> <div className="flex items-center mb-6"><Plus className="h-6 w-6 text-blue-600 mr-3" /><h2 className="text-2xl font-bold text-gray-800">Add New Employee</h2></div> <div className="space-y-6"> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {formFields.map((field) => { const Icon = field.icon; return ( <div key={field.id} className="space-y-2"> <label htmlFor={field.id} className="flex items-center text-sm font-medium text-gray-700 mb-2"><Icon className="h-4 w-4 mr-2 text-gray-500" />{field.label}{field.required && <span className="text-red-500 ml-1">*</span>}</label> {field.type === 'select' ? ( <select id={field.id} value={formData[field.id as keyof EmployeeData] as string || ''} onChange={(e) => handleInputChange(field.id as keyof EmployeeData, e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"> <option value="">Select {field.label}</option> {field.id === 'department' ? departments.map((dept) => (<option key={dept.department_id} value={dept.department_id}>{dept.department_name}</option>)) : field.options?.map((option) => (<option key={option.value} value={option.value}>{option.label}</option>))} </select> ) : ( <input id={field.id} type={field.type} value={formData[field.id as keyof EmployeeData] as string || ''} onChange={(e) => handleInputChange(field.id as keyof EmployeeData, e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder={`Enter ${field.label.toLowerCase()}`} /> )} </div> ); })} </div> <div className="flex justify-end pt-6"> <button onClick={handleSubmit} disabled={loading} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg disabled:opacity-50"> {loading ? 'Adding...' : <><Plus className="inline h-5 w-5 mr-2" />Add Employee</>} </button> </div> </div> </div> );
+        return ( <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100"> <div className="flex items-center mb-6"><Plus className="h-6 w-6 text-blue-600 mr-3" /><h2 className="text-2xl font-bold text-gray-800">Add New Employee</h2></div> <div className="space-y-6"> <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {formFields.map((field) => { const Icon = field.icon; return ( <div key={field.id} className="space-y-2"> <label htmlFor={field.id} className="flex items-center text-sm font-medium text-gray-700 mb-2"><Icon className="h-4 w-4 mr-2 text-gray-500" />{field.label}{field.required && <span className="text-red-500 ml-1">*</span>}</label> {field.type === 'select' ? ( <select id={field.id} value={formData[field.id as keyof EmployeeData] as string || ''} onChange={(e) => handleInputChange(field.id as keyof EmployeeData, e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"> <option value="">Select {field.label}</option> {field.id === 'department' ? departments.map((dept) => (<option key={dept.department_id} value={dept.department_id}>{dept.department_name}</option>)) : field.options?.map((option) => (<option key={option.value} value={option.value}>{option.label}</option>))} </select> ) : ( <input id={field.id} type={field.type} value={formData[field.id as keyof EmployeeData] as string || ''} onChange={(e) => handleInputChange(field.id as keyof EmployeeData, e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder={`Enter ${field.label.toLowerCase()}`} /> )} </div> ); })} </div> <div className="flex justify-end pt-6"> <button onClick={handleSubmit} disabled={loading} className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-blue-800 shadow-lg disabled:opacity-50"> {loading ? 'Adding...' : <><Plus className="inline h-5 w-5 mr-2" />Add Employee</>}</button> </div> </div> </div> );
       case 'upload':
         return ( <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100"> <div className="flex items-center mb-6"><Upload className="h-6 w-6 text-green-600 mr-3" /><h2 className="text-2xl font-bold text-gray-800">Upload Employee Excel Data</h2></div> <div className="space-y-6"> <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400"> <FileSpreadsheet className="h-16 w-16 text-gray-400 mx-auto mb-4" /> <div><label htmlFor="excel-upload" className="block text-lg font-medium text-gray-700">Choose Excel File</label><p className="text-sm text-gray-500">.xlsx or .xls</p><input id="excel-upload" type="file" accept=".xlsx,.xls" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} className="block w-full text-sm text-gray-500 mt-4 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" /></div> </div> <div className="flex space-x-4 justify-center"> <button onClick={handleExcelUpload} disabled={!uploadFile || uploadLoading} className="inline-flex items-center px-8 py-3 text-base font-medium rounded-xl text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 shadow-lg disabled:opacity-50"> {uploadLoading ? 'Uploading...' : <><Upload className="h-5 w-5 mr-2" />Upload</>} </button> <button onClick={handleDownloadTemplate} className="inline-flex items-center px-6 py-3 text-base font-medium rounded-xl bg-gray-600 text-white hover:bg-gray-700 shadow-lg"><FileSpreadsheet className="h-5 w-5 mr-2" />Template</button> </div> {uploadFile && <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-4 flex items-center"><FileSpreadsheet className="h-5 w-5 text-green-600 mr-2" /><span className="text-green-800 font-medium">{uploadFile.name}</span></div>} </div> </div> );
       case 'employee-list':
-        return ( <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"> <div className="p-6 border-b border-gray-200"> <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"> <div className="flex items-center"><FileSpreadsheet className="h-6 w-6 text-purple-600 mr-3" /><h2 className="text-2xl font-bold text-gray-800">Employee Records</h2><span className="ml-3 bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">{employeeData.length} total</span></div> <div className="flex flex-col sm:flex-row gap-4"> <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /><input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"/></div> <select value={selectedDepartment} onChange={(e) => { setSelectedDepartment(e.target.value); setCurrentPage(1); }} className="w-full sm:w-48 px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"><option value="">All Departments</option>{departments.map(dept => (<option key={dept.department_id} value={dept.department_id}>{dept.department_name}</option>))}</select> </div> </div> </div> {loading ? (<div className="text-center py-12"><p className="text-gray-600">Loading...</p></div>) : paginatedEmployees.length > 0 ? ( <> <div className="overflow-x-auto"> <table className="min-w-full divide-y divide-gray-200"><thead className="bg-gray-50"><tr><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">ID</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Name & Designation</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Department</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Join Date</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Contact</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th></tr></thead> <tbody className="bg-white divide-y divide-gray-200"> {paginatedEmployees.map((employee) => ( <tr key={employee.emp_id} className="hover:bg-gray-50"> <td className="px-6 py-4"><div className="flex items-center"><User className="h-4 w-4 text-gray-400 mr-2" /><span className="text-sm font-medium text-gray-900">{employee.emp_id}</span></div></td> 
-             
-             {/* UPDATED: Display Name and Designation */}
-             <td className="px-6 py-4">
-                 <div className="text-sm font-semibold text-gray-900">{`${employee.first_name} ${employee.last_name}`}</div>
-                 {employee.designation && <div className="text-xs text-gray-500 mt-0.5">{employee.designation}</div>}
-             </td>
-             
-             <td className="px-6 py-4 text-sm text-gray-500">{getDepartmentName(employee.department)}</td> <td className="px-6 py-4 text-sm text-gray-500">{formatDate(employee.date_of_joining)}</td> <td className="px-6 py-4"><div className="text-sm text-gray-900">{employee.email || <span className="text-gray-400 italic">No Email</span>}</div><div className="text-sm text-gray-500">{employee.phone || 'N/A'}</div></td> <td className="px-6 py-4"><div className="flex items-center space-x-2"><button onClick={() => setEditingEmployee(employee)} className="p-2 rounded-lg text-blue-700 bg-blue-100 hover:bg-blue-200"><Pencil className="h-4 w-4" /></button><button onClick={() => handleDelete(employee.emp_id)} disabled={loading} className="p-2 rounded-lg text-red-700 bg-red-100 hover:bg-red-200"><Trash2 className="h-4 w-4" /></button></div></td> </tr>))} </tbody> </table> </div> <div className="p-4 flex items-center justify-between border-t border-gray-200"> <p className="text-sm text-gray-700">Showing <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span>-<span>{Math.min(currentPage * ITEMS_PER_PAGE, filteredEmployees.length)}</span> of <span>{filteredEmployees.length}</span></p> <div className="flex items-center gap-2"><button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 text-sm font-medium border rounded-lg disabled:opacity-50">Prev</button><span className="text-sm">Page {currentPage} of {totalPages}</span><button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 text-sm font-medium border rounded-lg disabled:opacity-50">Next</button></div> </div> </> ) : ( <div className="text-center py-12"><Search className="h-16 w-16 text-gray-400 mx-auto mb-4" /><p className="text-xl font-medium text-gray-900 mb-2">No matching employees found</p><p className="text-gray-500">Try adjusting your search or filter criteria.</p></div> )} </div> );
+        return ( <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"> <div className="p-6 border-b border-gray-200"> <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"> <div className="flex items-center"><FileSpreadsheet className="h-6 w-6 text-purple-600 mr-3" /><h2 className="text-2xl font-bold text-gray-800">Employee Records</h2><span className="ml-3 bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">{employeeData.length} total</span></div> <div className="flex flex-col sm:flex-row gap-4"> <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" /><input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"/></div> <select value={selectedDepartment} onChange={(e) => { setSelectedDepartment(e.target.value); setCurrentPage(1); }} className="w-full sm:w-48 px-4 py-2 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"><option value="">All Departments</option>{departments.map(dept => (<option key={dept.department_id} value={dept.department_id}>{dept.department_name}</option>))}</select> </div> </div> </div> {loading ? (<div className="text-center py-12"><p className="text-gray-600">Loading...</p></div>) : paginatedEmployees.length > 0 ? ( <> <div className="overflow-x-auto"><table className="min-w-full divide-y divide-gray-200"><thead className="bg-gray-50"><tr><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">ID</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Name & Designation</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Department</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Join Date</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Contact</th><th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Actions</th></tr></thead><tbody className="bg-white divide-y divide-gray-200">{paginatedEmployees.map((employee) => (<tr key={employee.emp_id} className="hover:bg-gray-50"><td className="px-6 py-4"><div className="flex items-center"><User className="h-4 w-4 text-gray-400 mr-2" /><span className="text-sm font-medium text-gray-900">{employee.emp_id}</span></div></td><td className="px-6 py-4"><div className="text-sm font-semibold text-gray-900">{`${employee.first_name || ''} ${employee.last_name || ''}`}</div>{employee.designation && <div className="text-xs text-gray-500 mt-0.5">{employee.designation}</div>}</td><td className="px-6 py-4 text-sm text-gray-500">{getDepartmentName(employee.department)}</td><td className="px-6 py-4 text-sm text-gray-500">{formatDate(employee.date_of_joining)}</td><td className="px-6 py-4"><div className="text-sm text-gray-900">{employee.email || <span className="text-gray-400 italic">No Email</span>}</div><div className="text-sm text-gray-500">{employee.phone || 'N/A'}</div></td><td className="px-6 py-4"><div className="flex items-center space-x-2"><button onClick={() => setEditingEmployee(employee)} className="p-2 rounded-lg text-blue-700 bg-blue-100 hover:bg-blue-200"><Pencil className="h-4 w-4" /></button><button onClick={() => setDeletingEmployee(employee)} disabled={loading} className="p-2 rounded-lg text-red-700 bg-red-100 hover:bg-red-200"><Trash2 className="h-4 w-4" /></button></div></td></tr>))}</tbody></table></div> <div className="p-4 flex items-center justify-between border-t border-gray-200"> <p className="text-sm text-gray-700">Showing <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span>-<span>{Math.min(currentPage * ITEMS_PER_PAGE, filteredEmployees.length)}</span> of <span>{filteredEmployees.length}</span></p> <div className="flex items-center gap-2"><button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1} className="px-4 py-2 text-sm font-medium border rounded-lg disabled:opacity-50">Prev</button><span className="text-sm">Page {currentPage} of {totalPages}</span><button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} className="px-4 py-2 text-sm font-medium border rounded-lg disabled:opacity-50">Next</button></div> </div> </> ) : ( <div className="text-center py-12"><Search className="h-16 w-16 text-gray-400 mx-auto mb-4" /><p className="text-xl font-medium text-gray-900 mb-2">No matching employees found</p><p className="text-gray-500">Try adjusting your search or filter criteria.</p></div> )} </div> );
       default: return null;
     }
   };
 
-  return ( <div className="min-h-screen bg-gray-50"> <div className="container mx-auto px-4 py-8"> <div className="mb-8"><h1 className="text-4xl font-bold text-gray-900 mb-2">Master Table Settings</h1><p className="text-lg text-gray-600">Manage employee data and records efficiently</p></div> <div className="mb-8"><div className="border-b border-gray-200 bg-white rounded-t-2xl shadow-sm"><nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">{tabs.map((tab) => {const Icon = tab.icon; return (<button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`${activeTab === tab.id ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm rounded-t-lg flex items-center space-x-2`}><Icon className="h-5 w-5" /><span>{tab.name}</span></button>);})}</nav></div></div> <div className="tab-content">{renderTabContent()}</div> </div> {editingEmployee && (<EditEmployeeModal employee={editingEmployee} onClose={() => setEditingEmployee(null)} onSave={handleUpdateEmployee} departments={departments} />)} </div> );
+  return ( <div className="min-h-screen bg-gray-50"> <div className="container mx-auto px-4 py-8"> <div className="mb-8"><h1 className="text-4xl font-bold text-gray-900 mb-2">Master Table Settings</h1><p className="text-lg text-gray-600">Manage employee data and records efficiently</p></div> <div className="mb-8"><div className="border-b border-gray-200 bg-white rounded-t-2xl shadow-sm"><nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">{tabs.map((tab) => {const Icon = tab.icon; return (<button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`${activeTab === tab.id ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm rounded-t-lg flex items-center space-x-2`}><Icon className="h-5 w-5" /><span>{tab.name}</span></button>);})}</nav></div></div> <div className="tab-content">{renderTabContent()}</div> </div> {editingEmployee && (<EditEmployeeModal employee={editingEmployee} onClose={() => setEditingEmployee(null)} onSave={handleUpdateEmployee} departments={departments} />)} {deletingEmployee && (<DeleteConfirmationModal employee={deletingEmployee} onClose={() => setDeletingEmployee(null)} onConfirm={(deleteBio) => executeDelete(deletingEmployee.emp_id, deleteBio)} />)} </div> );
 };
 
 export default MasterTableSettings;
