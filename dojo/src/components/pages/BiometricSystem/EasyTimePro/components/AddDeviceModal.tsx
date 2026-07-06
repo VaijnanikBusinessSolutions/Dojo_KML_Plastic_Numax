@@ -61,9 +61,25 @@ const AddDeviceModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, machines,
             }
             onSuccess();
             onClose();
-        } catch (e) {
-            alert("Error saving device.");
-            console.error(e);
+        } catch (e: any) {
+            let errorMsg = "Unknown error occurred.";
+            if (e.response && e.response.data) {
+                const errorStr = JSON.stringify(e.response.data).toLowerCase();
+                // Check if Django REST framework returned a uniqueness error
+                if (errorStr.includes("already exists") || errorStr.includes("unique")) {
+                    errorMsg = "This device is already registered in the system.";
+                } else if (typeof e.response.data === 'object') {
+                    errorMsg = Object.entries(e.response.data)
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join('\n');
+                } else {
+                    errorMsg = String(e.response.data);
+                }
+            } else if (e.message) {
+                errorMsg = e.message;
+            }
+            alert(`Error saving device:\n\n${errorMsg}`);
+            console.error("Device Save Error:", e);
         }
     };
 

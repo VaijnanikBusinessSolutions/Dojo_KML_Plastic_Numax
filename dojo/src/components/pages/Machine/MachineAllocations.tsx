@@ -23,10 +23,12 @@ const MachineAllocationsPage: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [machines, setMachines] = useState<Machine[]>([]);
   const [employees, setEmployees] = useState<SkillMatrix[]>([]);
-  const [formData, setFormData] = useState<{ department: number | ''; machine: number | ''; employee: string | '' }>({
+  const [formData, setFormData] = useState<{ department: number | ''; machine: number | ''; employee: string | ''; is_temporary: boolean; access_date: string }>({
     department: '',
     machine: '',
     employee: '',
+    is_temporary: false,
+    access_date: '',
   });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,23 +49,42 @@ const MachineAllocationsPage: React.FC = () => {
         .then(setMachines)
         .catch(console.error);
       setFormData(prev => ({ ...prev, machine: '', employee: '' }));
+      setEmployees([]);
     } else {
       setMachines([]);
       setFormData(prev => ({ ...prev, machine: '', employee: '' }));
+      setEmployees([]);
     }
   }, [formData.department]);
+
+  // Machine change -> fetch eligible employees for machine
+  useEffect(() => {
+    const machineId = Number(formData.machine);
+    const departmentId = Number(formData.department);
+    if (machineId) {
+      setIsFetchingEmployees(true);
+      fetchEligibleEmployees(machineId, departmentId)
+        .then(res => {
+          setEmployees(res.employees);
+        })
+        .catch(console.error)
+        .finally(() => setIsFetchingEmployees(false));
+      setFormData(prev => ({ ...prev, employee: '' }));
+    } else {
+      setEmployees([]);
+      setFormData(prev => ({ ...prev, employee: '' }));
+    }
+  }, [formData.machine]);
 
   const init = async () => {
     setIsLoading(true);
     try {
-      const [deps, allocs, emps] = await Promise.all([
+      const [deps, allocs] = await Promise.all([
         fetchDepartments(), 
         fetchMachineAllocations(), 
-        fetchEmployees()
       ]);
       setDepartments(deps);
       setAllocations(allocs);
-      setEmployees(emps);
     } catch (err) {
       console.error('Init error:', err);
     } finally {
@@ -72,16 +93,22 @@ const MachineAllocationsPage: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]:
-        value === ''
-          ? ''
-          : name === 'employee'
-          ? value               // keep employee as string
-          : Number(value),      // convert department & machine to numbers
-    }));
+    const { name, value, type } = e.target;
+    setFormData(prev => {
+      if (type === 'checkbox') {
+        const checked = (e.target as HTMLInputElement).checked;
+        return { ...prev, [name]: checked };
+      }
+      return {
+        ...prev,
+        [name]:
+          value === ''
+            ? ''
+            : name === 'employee' || name === 'access_date'
+            ? value               // keep as string
+            : Number(value),      // convert to numbers
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,6 +128,8 @@ const MachineAllocationsPage: React.FC = () => {
         machine: machineId,
         department: departmentId,
         employee: employeeId,
+        is_temporary: formData.is_temporary,
+        access_date: formData.is_temporary ? formData.access_date : null,
       };
       
       if (editingId) {
@@ -165,7 +194,7 @@ const MachineAllocationsPage: React.FC = () => {
   };
 
   const resetForm = () => {
-    setFormData({ department: '', machine: '', employee: '' });
+    setFormData({ department: '', machine: '', employee: '', is_temporary: false, access_date: '' });
     setEditingId(null);
   };
 

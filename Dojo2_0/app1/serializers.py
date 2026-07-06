@@ -3635,10 +3635,11 @@ class EligibleEmployeeSerializer(serializers.ModelSerializer):
     level_value = serializers.IntegerField(source='level.level_id', read_only=True)
     is_eligible = serializers.SerializerMethodField()
     department_id = serializers.IntegerField(source='hierarchy.department.department_id', read_only=True)
+    station_name = serializers.CharField(source='hierarchy.station.station_name', read_only=True)
     
     class Meta:
         model = SkillMatrix
-        fields = ['id', 'employee_name', 'emp_id', 'level_value', 'is_eligible', 'department_id']
+        fields = ['id', 'employee_name', 'emp_id', 'level_value', 'is_eligible', 'department_id', 'station_name']
     
     def get_is_eligible(self, obj):
         machine_level = self.context.get('machine_level', 0)

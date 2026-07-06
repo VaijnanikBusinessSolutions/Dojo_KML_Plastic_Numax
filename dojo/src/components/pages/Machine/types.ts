@@ -50,6 +50,8 @@ export interface MachineAllocation  {
   employee: string;
   machine_name: string;      // employee code (string, e.g., "NL001")
   employee_name: string; // full name
+  is_temporary?: boolean;
+  access_date?: string | null;
 };
 
 // export interface MachineAllocationRequest {
@@ -61,6 +63,8 @@ export interface MachineAllocationRequest {
   machine: number;      // backend wants `machine`
   department: number;   // backend wants `department`
   employee: string;     // backend wants `employee`
+  is_temporary?: boolean;
+  access_date?: string | null;
 }
 
 

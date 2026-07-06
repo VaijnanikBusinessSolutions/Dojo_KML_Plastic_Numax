@@ -3140,6 +3140,28 @@ class MachineAllocation(models.Model):
         default='pending'
     )
 
+    # --- Temporary Access Fields ---
+    is_temporary = models.BooleanField(
+        default=False,
+        help_text="If True, this is emergency/temporary access valid until access_date."
+    )
+    access_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="The date this temporary access expires."
+    )
+    BIOMETRIC_STATUS_CHOICES = [
+        ('not_synced', 'Not Synced'),
+        ('active',     'Active – Unblocked on Device'),
+        ('blocked',    'Blocked on Device'),
+    ]
+    biometric_status = models.CharField(
+        max_length=20,
+        choices=BIOMETRIC_STATUS_CHOICES,
+        default='not_synced',
+        help_text="Tracks whether the employee is active or blocked on the biometric device."
+    )
+
     class Meta:
         # Ensure one allocation per machine-employee pair
         unique_together = ['machine', 'employee']

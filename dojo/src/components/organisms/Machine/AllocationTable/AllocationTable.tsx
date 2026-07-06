@@ -137,6 +137,18 @@ const AllocationTable: React.FC<Props> = ({ allocations, isLoading, onDelete }) 
                             <div className="h-1.5 w-1.5 rounded-full bg-current"></div>
                             {a.approval_status}
                           </span>
+                          {a.is_temporary && (
+                            <div className="mt-2 flex items-center gap-1">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 uppercase">
+                                Temporary
+                              </span>
+                              {a.access_date && (
+                                <span className="text-xs text-amber-700 font-medium">
+                                  Until {new Date(a.access_date).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-right">
                           <button
@@ -194,6 +206,18 @@ const AllocationTable: React.FC<Props> = ({ allocations, isLoading, onDelete }) 
                         {a.approval_status}
                       </span>
                     </div>
+                    {a.is_temporary && (
+                      <div className="mb-3 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 border border-amber-100">
+                        <span className="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 uppercase">
+                          Temporary
+                        </span>
+                        {a.access_date && (
+                          <span className="text-xs font-medium text-amber-700">
+                            Expires: {new Date(a.access_date).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     
                     <div className="flex justify-end">
                       <button

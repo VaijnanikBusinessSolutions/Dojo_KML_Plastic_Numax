@@ -223,15 +223,31 @@ class EasyTimeClient:
         # DOJO_ROOM_ID = 13  #DojoRoom device(Area) id
         # dojo_target_areas.append(DOJO_ROOM_ID)
         
-        # B. Add Specific Areas (Skill Matrix)
+        # B. Add Specific Areas (Skill Matrix or other logical areas if any are still passed)
         if area_ids:
             # Handle list or int
             ids_to_check = area_ids if isinstance(area_ids, list) else [area_ids]
             for aid in ids_to_check:
                 # Only add if not 1 and not already in list
                 if aid != 1 and aid not in dojo_target_areas:
-                    # target_areas.append(aid)
                     dojo_target_areas.append(aid)
+
+        # C. Auto-Detect Target Device Area
+        try:
+            term_data = requests.get(f"{self.terminals_list_url}?sn={serial_number}", headers=self.get_headers()).json()
+            if term_data.get('data') and len(term_data['data']) > 0:
+                raw_area = term_data['data'][0].get('area')
+                target_area_id = None
+                if isinstance(raw_area, dict):
+                    target_area_id = raw_area.get('id')
+                elif isinstance(raw_area, int):
+                    target_area_id = raw_area
+                
+                if target_area_id and target_area_id not in dojo_target_areas:
+                    dojo_target_areas.append(target_area_id)
+                    print(f"   ℹ️  Auto-detected Target Device Area: {target_area_id} (for SN {serial_number})")
+        except Exception as e:
+            print(f"   ⚠️  Target Device Area Lookup Failed: {e}")
 
         # --- STEP 5: FETCH & MERGE (CRITICAL FIX) ---
         # 1. Fetch what is currently on the server
@@ -584,6 +600,82 @@ class EasyTimeClient:
             res = requests.put(f"{self.employee_url}{internal_id}/", json=payload, headers=headers)
             if res.status_code in [200, 201]:
                 return {"status": "success", "message": "Machine Access Revoked (Manual Access Kept)"}
+            else:
+                return {"status": "error", "message": res.text}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    def revoke_employee_from_device(self, emp_code, serial_number):
+        """
+        SAFE TARGETED REVOCATION:
+        Removes ONLY the specific Area ID associated with the target device.
+        """
+        internal_id = self.get_employee_internal_id(emp_code)
+        if not internal_id: return {"status": "error", "message": "User not found on server"}
+
+        headers = self.get_headers()
+        
+        # 1. Fetch Target Device Area ID
+        target_area_id = None
+        try:
+            term_data = requests.get(f"{self.terminals_list_url}?sn={serial_number}", headers=headers).json()
+            if term_data.get('data') and len(term_data['data']) > 0:
+                raw_area = term_data['data'][0].get('area')
+                if isinstance(raw_area, dict):
+                    target_area_id = raw_area.get('id')
+                elif isinstance(raw_area, int):
+                    target_area_id = raw_area
+        except Exception as e:
+            return {"status": "error", "message": f"Failed to fetch device info: {e}"}
+
+        if not target_area_id:
+            return {"status": "error", "message": "Target device has no Area assigned"}
+
+        # 2. Fetch User's Current Areas
+        try:
+            user_data = requests.get(f"{self.employee_url}{internal_id}/", headers=headers).json()
+            current_areas = user_data.get('area', [])
+        except:
+            return {"status": "error", "message": "Failed to fetch user data"}
+
+        # 3. Filter out the specific Target Area ID
+        new_area_list = []
+        old_ids_for_log = []
+        for item in current_areas:
+            a_id = item.get('id') if isinstance(item, dict) else item
+            old_ids_for_log.append(a_id)
+            if a_id != target_area_id:
+                new_area_list.append(a_id)
+        
+        # Ensure at least area 1 exists
+        if not new_area_list: new_area_list = [1]
+
+        print(f"   ℹ️  Targeted Revocation for {emp_code} (Device SN: {serial_number}). Old: {old_ids_for_log} -> New: {new_area_list}")
+
+        # 4. Prepare Payload & Update
+        dept_val = user_data.get('department')
+        dept_id = dept_val.get('id') if isinstance(dept_val, dict) else dept_val
+
+        pos_val = user_data.get('position')
+        pos_id = pos_val.get('id') if isinstance(pos_val, dict) else pos_val
+
+        payload = {
+            "area": new_area_list,
+            "emp_code": user_data.get('emp_code'),
+            "first_name": user_data.get('first_name'),
+            "last_name": user_data.get('last_name'),
+            "department": dept_id,
+            "position": pos_id,
+            "mobile": user_data.get('mobile'),
+            "gender": user_data.get('gender'),
+            "hire_date": user_data.get('hire_date'),
+            "app_status": 1
+        }
+        
+        try:
+            res = requests.put(f"{self.employee_url}{internal_id}/", json=payload, headers=headers)
+            if res.status_code in [200, 201]:
+                return {"status": "success", "message": f"Revoked access from area {target_area_id}"}
             else:
                 return {"status": "error", "message": res.text}
         except Exception as e:

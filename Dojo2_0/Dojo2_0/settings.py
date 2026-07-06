@@ -229,7 +229,7 @@ BACKEND_BASE_URL = "http://127.0.0.1:8000"
 
 
 # EasyTimePro Configuration
-EASYTIME_BASE_URL = "http://192.168.1.88:8081"  # Replace with your actual IP
+EASYTIME_BASE_URL = "http://192.168.1.21:8081"  # Replace with your actual IP
 EASYTIME_USERNAME = "admin"               # Your EasyTime Username
 EASYTIME_PASSWORD = "Admin@1234"      # Your EasyTime Password
 

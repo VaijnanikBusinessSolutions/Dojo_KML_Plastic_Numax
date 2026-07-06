@@ -409,4 +409,66 @@ def convert_local_logs_to_biometric_attendance(date_obj):
     return saved_count
 
 
-# -----------Numax easytimepro End ---------------------------
+
+@shared_task
+def revoke_temporary_access():
+    """
+    Celery task to automatically revoke biometric access for expired temporary machine allocations.
+    Designed to run daily at midnight via django-celery-beat.
+    """
+    from django.utils import timezone
+    from .models import MachineAllocation
+    from .services.easytime_client import EasyTimeClient
+    
+    today = timezone.localtime().date()
+    
+    # Find all temporary allocations that are active and have expired
+    expired_allocations = MachineAllocation.objects.filter(
+        is_temporary=True,
+        biometric_status='active',
+        access_date__lt=today
+    ).select_related('machine__biometric_device', 'employee__employee')
+    
+    if not expired_allocations.exists():
+        msg = f"[{timezone.now()}] No expired temporary allocations found to revoke."
+        print(msg)
+        return msg
+
+    success_count = 0
+    fail_count = 0
+
+    client = EasyTimeClient()
+
+    for allocation in expired_allocations:
+        device = allocation.machine.biometric_device
+        
+        if not device:
+            fail_count += 1
+            print(f"Machine '{allocation.machine.name}' has no linked device. Skipping allocation {allocation.id}.")
+            continue
+            
+        emp_master = allocation.employee.employee
+        employee_code = emp_master.emp_id
+        
+        print(f"Revoking access for {employee_code} on Numax {device.name} (Allocation ID: {allocation.id})...")
+        try:
+            # Use the safe Area removal method
+            result = client.revoke_employee_from_device(employee_code, device.serial_number)
+            if result.get("status") == "success":
+                allocation.biometric_status = 'blocked'
+                allocation.save(update_fields=['biometric_status'])
+                print(f"Successfully revoked {employee_code}.")
+                success_count += 1
+            else:
+                print(f"Numax revoke failed for {employee_code}: {result.get('message')}")
+                fail_count += 1
+        except Exception as e:
+            print(f"Error calling Numax client: {e}")
+            fail_count += 1
+
+    summary = f"[{timezone.now()}] Biometric Revoke Summary: {success_count} success, {fail_count} failed."
+    print(summary)
+    return summary
+
+    # -----------Numax easytimepro End ---------------------------
+

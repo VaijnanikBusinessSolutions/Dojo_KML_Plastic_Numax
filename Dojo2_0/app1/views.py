@@ -17775,12 +17775,7 @@ class BioUserViewSet(viewsets.ModelViewSet):
                     # 2. Calculate Areas & Machines
                     for skill in user_skills:
                         if skill.hierarchy and skill.hierarchy.station:
-                            # Add Area
-                            s_name = skill.hierarchy.station.station_name
-                            a_id = client.ensure_area(s_name)
-                            if a_id not in target_areas: target_areas.append(a_id)
-                            
-                            # Find Machines linked to this Station
+                            # We rely on target device auto-detection in client for areas now
                             machines = Machine.objects.filter(
                                 process=skill.hierarchy.station,
                                 biometric_device__isnull=False

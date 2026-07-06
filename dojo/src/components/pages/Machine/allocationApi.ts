@@ -38,6 +38,8 @@ export async function createMachineAllocation(data: MachineAllocationRequest): P
       machine: Number(data.machine),
       department: Number(data.department),
       employee: Number(data.employee), // Convert to number
+      is_temporary: data.is_temporary || false,
+      access_date: data.is_temporary ? data.access_date : null,
     };
     
     console.log('Sending payload:', payload); // Debug log
@@ -56,6 +58,8 @@ export async function updateMachineAllocation(id: number, data: MachineAllocatio
       machine: Number(data.machine),
       department: Number(data.department),
       employee: Number(data.employee), // Convert to number
+      is_temporary: data.is_temporary || false,
+      access_date: data.is_temporary ? data.access_date : null,
     };
     
     const res = await api.put(`${ENDPOINTS.MACHINE_ALLOCATIONS}${id}/`, payload);
@@ -114,6 +118,7 @@ export async function fetchEligibleEmployees(machineId: number, departmentId?: n
       name: emp.employee_name,
       level: emp.level_value, // Use level_value from serializer (level.id)
       department: emp.department_id, // From hierarchy.department.id
+      station_name: emp.station_name,
       is_eligible: emp.is_eligible || false,
     })) || [];
     

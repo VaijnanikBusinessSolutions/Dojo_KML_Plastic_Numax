@@ -1638,18 +1638,6 @@ def skill_matrix_biometric_trigger(sender, instance, **kwargs):
     # Run the entire sync in a single background thread to prevent blocks & races
     def background_skill_sync():
         compiled_areas = []
-        for skill in all_user_skills:
-            if skill.hierarchy and skill.hierarchy.station:
-                user_skill_level_id = skill.level.level_id
-                qualifying_levels = Level.objects.filter(level_id__lte=user_skill_level_id)
-                st_name = skill.hierarchy.station.station_name
-                st_id = skill.hierarchy.station.station_id
-                for lvl in qualifying_levels:
-                    s_name = f"{st_name}(S{st_id})-L{lvl.level_name}"
-                    a_id = client.ensure_area(s_name)
-                    if a_id not in compiled_areas:
-                        compiled_areas.append(a_id)
-        
         sync_user_profile_and_push_to_devices(bio_user, target_devices, compiled_areas, dept_name)
 
     threading.Thread(target=background_skill_sync).start()
@@ -1703,18 +1691,6 @@ def skill_matrix_delete_biometric_trigger(sender, instance, **kwargs):
 
     def background_delete_sync():
         compiled_areas = []
-        for skill in remaining_skills:
-            if skill.hierarchy and skill.hierarchy.station:
-                user_skill_level_id = skill.level.level_id
-                qualifying_levels = Level.objects.filter(level_id__lte=user_skill_level_id)
-                st_name = skill.hierarchy.station.station_name
-                st_id = skill.hierarchy.station.station_id
-                for lvl in qualifying_levels:
-                    s_name = f"{st_name}(S{st_id})-L{lvl.level_name}"
-                    a_id = client.ensure_area(s_name)
-                    if a_id not in compiled_areas:
-                        compiled_areas.append(a_id)
-
         sync_user_profile_and_push_to_devices(bio_user, target_devices, compiled_areas, dept_name)
 
     threading.Thread(target=background_delete_sync).start()
@@ -1768,6 +1744,76 @@ def delete_user_from_easytime_master(sender, instance, **kwargs):
                 print(f"⚠️ Delete Warning: {result.get('message')}")
     else:
         print(f"--> [MasterTable] Skipping biometric delete for {instance.emp_id} (Dojo-only delete)")
+
+
+# ---------------------------------------------------
+# SIGNAL 4: MACHINE ALLOCATION SAVE/DELETE
+# ---------------------------------------------------
+@receiver(post_save, sender=MachineAllocation)
+def machine_allocation_save_biometric_trigger(sender, instance, created=False, **kwargs):
+    # If the allocation is brand new and not approved, there's no reason to create the profile in EasyTime yet.
+    if created and instance.approval_status != 'approved':
+        print(f"ℹ️ Allocation created as Pending for {instance.employee.emp_id}. Skipping biometric sync.")
+        return
+
+    _trigger_biometric_sync_for_employee(instance.employee.emp_id)
+
+@receiver(pre_delete, sender=MachineAllocation)
+def machine_allocation_delete_biometric_trigger(sender, instance, **kwargs):
+    # Pass a flag or handle gracefully if employee is already deleted, but typically emp_id is still valid here.
+    _trigger_biometric_sync_for_employee(instance.employee.emp_id)
+
+def _trigger_biometric_sync_for_employee(emp_id):
+    try:
+        emp_record = MasterTable.objects.get(emp_id=emp_id)
+        bio_user, _ = BioUser.objects.update_or_create(
+            employeeid=emp_id,
+            defaults={'first_name': emp_record.first_name, 'last_name': emp_record.last_name or ""}
+        )
+    except MasterTable.DoesNotExist:
+        return
+
+    dept_name = emp_record.department.department_name if emp_record.department else "General"
+    target_devices = []
+    
+    # 1. Base Devices
+    base_devices = BiometricDevice.objects.filter(
+        Q(is_attendance_device=True) | Q(is_enrollment_device=True)
+    )
+    for dev in base_devices:
+        target_devices.append(dev)
+        
+    # 2. Eligible via SkillMatrix
+    skills = SkillMatrix.objects.filter(emp_id=emp_id)
+    for skill in skills:
+        if skill.hierarchy and skill.hierarchy.station:
+            try:
+                eligible_machines = Machine.objects.filter(
+                    process=skill.hierarchy.station,
+                    level__lte=skill.level.level_id,
+                    biometric_device__isnull=False
+                ).select_related('biometric_device')
+                for m in eligible_machines:
+                    if m.biometric_device not in target_devices:
+                        target_devices.append(m.biometric_device)
+            except AttributeError:
+                pass
+                
+    # 3. Eligible via Approved MachineAllocations
+    allocations = MachineAllocation.objects.filter(
+        employee__emp_id=emp_id,
+        approval_status='approved',
+        machine__biometric_device__isnull=False
+    ).select_related('machine__biometric_device')
+    for alloc in allocations:
+        if alloc.machine.biometric_device not in target_devices:
+            target_devices.append(alloc.machine.biometric_device)
+
+    def background_sync():
+        compiled_areas = []
+        sync_user_profile_and_push_to_devices(bio_user, target_devices, compiled_areas, dept_name)
+
+    threading.Thread(target=background_sync).start()
 
 
 # ---------------------------------------------------

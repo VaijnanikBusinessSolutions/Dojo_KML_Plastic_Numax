@@ -271,6 +271,8 @@ type FormData = {
   department: string;
   machine: string;
   employee: string;
+  is_temporary?: boolean;
+  access_date?: string;
 };
 
 type Department = {
@@ -291,6 +293,7 @@ type Employee = {
   name?: string;
   employee_code?: string;
   level: number;
+  station_name?: string;
 };
 
 type AllocationFormProps = {
@@ -302,7 +305,7 @@ type AllocationFormProps = {
   isSubmitting: boolean;
   isFetchingEmployees: boolean;
   machineLevel: number | null;
-  onInputChange: (e: ChangeEvent<HTMLSelectElement>) => void;
+  onInputChange: (e: ChangeEvent<HTMLSelectElement | HTMLInputElement>) => void;
   onSubmit: () => void;
   onCancel: () => void;
 };
@@ -324,6 +327,15 @@ const AllocationForm: FC<AllocationFormProps> = ({
     if (!machineLevel || !employee.level) return false;
     return employee.level >= machineLevel;
   };
+
+  const getEmployeeDisplayName = (emp: Employee, isEligible: boolean) => {
+    const name = emp.employee_name || emp.name || `Employee ${emp.employee_code || emp.id}`;
+    const station = emp.station_name ? ` - ${emp.station_name}` : '';
+    return `${name} (Level ${emp.level})${station}`;
+  };
+
+  const eligibleEmployees = employees.filter(isEmployeeEligible);
+  const pendingEmployees = employees.filter(e => !isEmployeeEligible(e));
 
   const filteredMachines = useMemo(() => {
     if (!formData.department) {
@@ -446,11 +458,24 @@ const AllocationForm: FC<AllocationFormProps> = ({
                 <option value="">
                   {isFetchingEmployees ? 'Loading employees...' : !formData.machine ? 'Select Machine First' : 'Select Employee'}
                 </option>
-                {!isFetchingEmployees && employees.map(e => (
-                  <option key={e.id} value={e.id}>
-                    {e.employee_name || e.name || `Employee ${e.employee_code || e.id}`} (Level {e.level})
-                  </option>
-                ))}
+                {!isFetchingEmployees && eligibleEmployees.length > 0 && (
+                  <optgroup label="Eligible Employees">
+                    {eligibleEmployees.map(e => (
+                      <option key={e.id} value={e.id}>
+                        {getEmployeeDisplayName(e, true)}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {!isFetchingEmployees && pendingEmployees.length > 0 && (
+                  <optgroup label="Pending/Ineligible Employees">
+                    {pendingEmployees.map(e => (
+                      <option key={e.id} value={e.id}>
+                        {getEmployeeDisplayName(e, false)}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
                 {isFetchingEmployees ? (
@@ -483,6 +508,46 @@ const AllocationForm: FC<AllocationFormProps> = ({
                     </div>
                   );
                 })()}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Temporary Access Section */}
+        <div className={`mt-6 rounded-xl border p-5 transition-all duration-300 ${formData.is_temporary ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="is_temporary"
+                name="is_temporary"
+                checked={formData.is_temporary || false}
+                onChange={onInputChange}
+                className="h-5 w-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+              />
+              <label htmlFor="is_temporary" className="ml-3 flex items-center text-sm font-semibold text-gray-700">
+                <FiAlertCircle className="mr-2 h-4 w-4 text-amber-500" />
+                Temporary Access
+              </label>
+            </div>
+            
+            {formData.is_temporary && (
+              <div className="flex-1 animate-in fade-in slide-in-from-left-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <label htmlFor="access_date" className="text-sm font-medium text-gray-700 sm:w-auto">
+                    Expiry Date: <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="access_date"
+                    name="access_date"
+                    value={formData.access_date || ''}
+                    onChange={onInputChange}
+                    min={new Date().toISOString().split('T')[0]}
+                    required={formData.is_temporary}
+                    className="flex-1 rounded-lg border-2 border-amber-200 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+                  />
+                </div>
               </div>
             )}
           </div>
